@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Link, useLocation, Outlet, useNavigate } from 'react-router-dom';
+import { Link, useLocation, Outlet, useNavigate, useSearchParams } from 'react-router-dom';
 import { BarChart3, Shield, Settings, Link as LinkIcon, ChevronLeft, ChevronRight, Globe, User, LogOut } from 'lucide-react';
 import { authAPI, sitesAPI } from '../../utils/api';
 import ThemeToggle from '../ThemeToggle/ThemeToggle';
@@ -8,6 +8,7 @@ import styles from './Layout.module.css';
 function Layout() {
   const location = useLocation();
   const navigate = useNavigate();
+  const [searchParams, setSearchParams] = useSearchParams();
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const [sites, setSites] = useState([]);
   const [currentSite, setCurrentSite] = useState(null);
@@ -28,6 +29,17 @@ function Layout() {
     loadSites();
   }, []);
 
+  // Синхронизация currentSite с URL параметром
+  useEffect(() => {
+    const siteIdFromUrl = searchParams.get('site');
+    if (siteIdFromUrl && sites.length > 0) {
+      const site = sites.find(s => s.id === parseInt(siteIdFromUrl));
+      if (site && (!currentSite || currentSite.id !== site.id)) {
+        setCurrentSite(site);
+      }
+    }
+  }, [searchParams, sites]);
+
   const loadUser = async () => {
     try {
       const data = await authAPI.getMe();
@@ -45,13 +57,33 @@ function Layout() {
       const data = await sitesAPI.getAll();
       setSites(data.sites);
       
-      // Автоматически выбираем первый сайт
-      if (data.sites.length > 0 && !currentSite) {
+      // Автоматически выбираем сайт
+      if (data.sites.length > 0) {
+        const siteIdFromUrl = searchParams.get('site');
         const savedSiteId = localStorage.getItem('currentSiteId');
-        const site = savedSiteId 
-          ? data.sites.find(s => s.id === parseInt(savedSiteId)) 
-          : data.sites[0];
-        setCurrentSite(site || data.sites[0]);
+        
+        let siteToSelect;
+        
+        if (siteIdFromUrl) {
+          // Приоритет - сайт из URL
+          siteToSelect = data.sites.find(s => s.id === parseInt(siteIdFromUrl));
+        } else if (savedSiteId) {
+          // Потом - сохранённый в localStorage
+          siteToSelect = data.sites.find(s => s.id === parseInt(savedSiteId));
+        }
+        
+        // Если не нашли - первый сайт
+        if (!siteToSelect) {
+          siteToSelect = data.sites[0];
+        }
+        
+        if (siteToSelect) {
+          setCurrentSite(siteToSelect);
+          // Если мы не на странице /sites, добавляем параметр site в URL
+          if (location.pathname !== '/sites' && !siteIdFromUrl) {
+            setSearchParams({ site: siteToSelect.id });
+          }
+        }
       }
     } catch (err) {
       console.error('Load sites error:', err);
@@ -62,6 +94,11 @@ function Layout() {
     setCurrentSite(site);
     localStorage.setItem('currentSiteId', site.id);
     setShowSiteDropdown(false);
+    
+    // Обновляем URL параметр site
+    if (location.pathname !== '/sites') {
+      setSearchParams({ site: site.id });
+    }
   };
 
   const handleLogout = async () => {
