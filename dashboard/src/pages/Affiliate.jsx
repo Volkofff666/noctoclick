@@ -5,6 +5,11 @@ import { useToast } from '../components/Toast/ToastContainer';
 import LineChart from '../components/Charts/LineChart';
 import styles from './Affiliate.module.css';
 
+// Import mock data
+import { mockAffiliateStats, mockReferrals, mockEarnings, mockEarningsChart } from '../utils/mockAffiliate';
+
+const USE_MOCK_DATA = true; // Переключатель для моковых данных
+
 function Affiliate() {
   const toast = useToast();
   const [stats, setStats] = useState(null);
@@ -16,7 +21,7 @@ function Affiliate() {
   const [showPayoutModal, setShowPayoutModal] = useState(false);
   const [payoutAmount, setPayoutAmount] = useState('');
   const [payoutMethod, setPayoutMethod] = useState('card');
-  const [activeTab, setActiveTab] = useState('overview'); // overview, referrals, earnings
+  const [activeTab, setActiveTab] = useState('overview');
 
   useEffect(() => {
     loadAffiliateData();
@@ -25,22 +30,36 @@ function Affiliate() {
   const loadAffiliateData = async () => {
     try {
       setLoading(true);
-      const [statsData, referralsData, earningsData, chartData] = await Promise.all([
-        affiliateAPI.getStats(),
-        affiliateAPI.getReferrals(),
-        affiliateAPI.getEarnings(),
-        affiliateAPI.getEarningsChart()
-      ]);
       
-      setStats(statsData.stats);
-      setReferrals(referralsData.referrals || []);
-      setEarnings(earningsData.earnings || []);
-      setEarningsChart(chartData.data || []);
-      setReferralCode(statsData.referralCode);
+      if (USE_MOCK_DATA) {
+        // Используем моковые данные
+        setTimeout(() => {
+          setStats(mockAffiliateStats.stats);
+          setReferrals(mockReferrals.referrals);
+          setEarnings(mockEarnings.earnings);
+          setEarningsChart(mockEarningsChart.data);
+          setReferralCode(mockAffiliateStats.referralCode);
+          setLoading(false);
+        }, 500); // Имитация задержки загрузки
+      } else {
+        // Реальный API
+        const [statsData, referralsData, earningsData, chartData] = await Promise.all([
+          affiliateAPI.getStats(),
+          affiliateAPI.getReferrals(),
+          affiliateAPI.getEarnings(),
+          affiliateAPI.getEarningsChart()
+        ]);
+        
+        setStats(statsData.stats);
+        setReferrals(referralsData.referrals || []);
+        setEarnings(earningsData.earnings || []);
+        setEarningsChart(chartData.data || []);
+        setReferralCode(statsData.referralCode);
+        setLoading(false);
+      }
     } catch (err) {
       console.error('Load affiliate data error:', err);
       toast.error('Ошибка загрузки данных партнёрской программы');
-    } finally {
       setLoading(false);
     }
   };
@@ -70,14 +89,28 @@ function Affiliate() {
     }
 
     try {
-      await affiliateAPI.requestPayout({
-        amount: parseFloat(payoutAmount),
-        method: payoutMethod
-      });
-      toast.success('Заявка на вывод отправлена! Средства поступят в течение 3-5 рабочих дней.');
-      setShowPayoutModal(false);
-      setPayoutAmount('');
-      await loadAffiliateData();
+      if (USE_MOCK_DATA) {
+        // Имитация успешного вывода
+        setTimeout(() => {
+          toast.success('Заявка на вывод отправлена! Средства поступят в течение 3-5 рабочих дней.');
+          setShowPayoutModal(false);
+          setPayoutAmount('');
+          // Обновляем баланс
+          setStats({
+            ...stats,
+            availableBalance: stats.availableBalance - parseFloat(payoutAmount)
+          });
+        }, 500);
+      } else {
+        await affiliateAPI.requestPayout({
+          amount: parseFloat(payoutAmount),
+          method: payoutMethod
+        });
+        toast.success('Заявка на вывод отправлена! Средства поступят в течение 3-5 рабочих дней.');
+        setShowPayoutModal(false);
+        setPayoutAmount('');
+        await loadAffiliateData();
+      }
     } catch (err) {
       console.error('Request payout error:', err);
       toast.error('Ошибка создания заявки на вывод');
