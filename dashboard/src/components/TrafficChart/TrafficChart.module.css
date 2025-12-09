@@ -1,0 +1,9 @@
+.container {
+  width: 100%;
+}
+
+.empty {
+  text-align: center;
+  padding: var(--spacing-2xl);
+  color: var(--text-secondary);
+}
