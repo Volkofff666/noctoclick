@@ -1,0 +1,294 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NoctoClick Tracker - Test Page</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            padding: 30px;
+        }
+
+        h1 {
+            color: #667eea;
+            margin-bottom: 10px;
+        }
+
+        .subtitle {
+            color: #666;
+            margin-bottom: 30px;
+            font-size: 14px;
+        }
+
+        .section {
+            margin-bottom: 30px;
+        }
+
+        .section h2 {
+            color: #333;
+            font-size: 18px;
+            margin-bottom: 15px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #667eea;
+        }
+
+        .buttons {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            margin-bottom: 20px;
+        }
+
+        button {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 6px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .btn-primary {
+            background: #667eea;
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: #5568d3;
+            transform: translateY(-2px);
+        }
+
+        .btn-danger {
+            background: #f56565;
+            color: white;
+        }
+
+        .btn-danger:hover {
+            background: #e53e3e;
+        }
+
+        .btn-success {
+            background: #48bb78;
+            color: white;
+        }
+
+        .btn-warning {
+            background: #ed8936;
+            color: white;
+        }
+
+        pre {
+            background: #f7fafc;
+            border: 1px solid #e2e8f0;
+            border-radius: 6px;
+            padding: 15px;
+            overflow-x: auto;
+            font-size: 12px;
+            line-height: 1.5;
+        }
+
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        .stat-card {
+            background: #f7fafc;
+            padding: 15px;
+            border-radius: 8px;
+            border-left: 4px solid #667eea;
+        }
+
+        .stat-label {
+            font-size: 12px;
+            color: #666;
+            text-transform: uppercase;
+            margin-bottom: 5px;
+        }
+
+        .stat-value {
+            font-size: 24px;
+            font-weight: bold;
+            color: #333;
+        }
+
+        .info {
+            background: #bee3f8;
+            border-left: 4px solid #4299e1;
+            padding: 15px;
+            border-radius: 4px;
+            margin-bottom: 20px;
+        }
+
+        .success {
+            background: #c6f6d5;
+            border-left: 4px solid #48bb78;
+            padding: 15px;
+            border-radius: 4px;
+            margin-bottom: 20px;
+        }
+
+        .scroll-content {
+            height: 500px;
+            background: linear-gradient(180deg, #f7fafc 0%, #edf2f7 100%);
+            padding: 20px;
+            border-radius: 8px;
+            margin-top: 20px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🔒 NoctoClick Tracker - Тестовая страница</h1>
+        <p class="subtitle">Система защиты от скликивания для Яндекс.Директ</p>
+
+        <div class="info">
+            <strong>ℹ️ Информация:</strong> Откройте консоль браузера (F12), чтобы увидеть собранные данные.
+            Трекер автоматически отправит данные через 5 секунд или при закрытии страницы.
+        </div>
+
+        <!-- Stats -->
+        <div class="section">
+            <h2>📊 Статистика поведения</h2>
+            <div class="stats">
+                <div class="stat-card">
+                    <div class="stat-label">Движения мыши</div>
+                    <div class="stat-value" id="mouseMovements">0</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-label">Клики</div>
+                    <div class="stat-value" id="clicks">0</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-label">Время на странице</div>
+                    <div class="stat-value" id="timeOnPage">0с</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-label">Глубина скролла</div>
+                    <div class="stat-value" id="scrollDepth">0%</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Actions -->
+        <div class="section">
+            <h2>🎮 Тестовые сценарии</h2>
+            <div class="buttons">
+                <button class="btn-primary" onclick="showFingerprint()">Показать Fingerprint</button>
+                <button class="btn-success" onclick="showBehavior()">Показать поведение</button>
+                <button class="btn-warning" onclick="simulateFraud()">⚠️ Симулировать фрод</button>
+                <button class="btn-danger" onclick="rapidClicks()">Быстрые клики (фрод)</button>
+                <button class="btn-primary" onclick="NoctoClick.sendData()">Отправить данные сейчас</button>
+            </div>
+        </div>
+
+        <!-- Fingerprint Display -->
+        <div class="section">
+            <h2>🔍 Browser Fingerprint</h2>
+            <pre id="fingerprintDisplay">Нажмите "Показать Fingerprint" чтобы увидеть собранные данные</pre>
+        </div>
+
+        <!-- Behavior Display -->
+        <div class="section">
+            <h2>👤 Поведенческие метрики</h2>
+            <pre id="behaviorDisplay">Нажмите "Показать поведение" чтобы увидеть метрики</pre>
+        </div>
+
+        <!-- Scroll test -->
+        <div class="section">
+            <h2>📜 Тест скролла</h2>
+            <div class="scroll-content">
+                <p>Прокрутите эту область вниз, чтобы увеличить глубину скролла...</p>
+                <div style="height: 1500px; display: flex; align-items: flex-end; justify-content: center;">
+                    <p style="background: white; padding: 20px; border-radius: 8px;">🎯 Вы достигли конца!</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- NoctoClick Tracker -->
+    <script 
+        src="noctoclick-tracker.js" 
+        data-endpoint="http://localhost:3001/api/track"
+        data-site-id="test-site"
+        data-debug="true"
+        data-noctoclick
+    ></script>
+
+    <!-- Demo script -->
+    <script>
+        // Update stats display
+        setInterval(function() {
+            var data = NoctoClick.getData();
+            if (data.behavior) {
+                document.getElementById('mouseMovements').textContent = data.behavior.mouseMovements || 0;
+                document.getElementById('clicks').textContent = data.behavior.clicks || 0;
+                document.getElementById('timeOnPage').textContent = (data.behavior.timeOnPage || 0) + 'с';
+                document.getElementById('scrollDepth').textContent = (data.behavior.scrollDepth || 0) + '%';
+            }
+        }, 500);
+
+        function showFingerprint() {
+            var data = NoctoClick.getData();
+            document.getElementById('fingerprintDisplay').textContent = JSON.stringify(data.fingerprint, null, 2);
+            console.log('Fingerprint:', data.fingerprint);
+            console.log('Hash:', data.fingerprintHash);
+        }
+
+        function showBehavior() {
+            var data = NoctoClick.getData();
+            document.getElementById('behaviorDisplay').textContent = JSON.stringify(data.behavior, null, 2);
+            console.log('Behavior:', data.behavior);
+        }
+
+        function simulateFraud() {
+            alert('⚠️ Симуляция фрод-активности:\n\n' +
+                  '- Нет движений мыши\n' +
+                  '- Быстрые повторяющиеся клики\n' +
+                  '- Короткое время на странице\n' +
+                  '\nТакое поведение будет помечено как подозрительное!');
+            
+            // Simulate rapid clicks
+            rapidClicks();
+        }
+
+        function rapidClicks() {
+            var count = 10;
+            var interval = setInterval(function() {
+                document.body.click();
+                count--;
+                if (count <= 0) {
+                    clearInterval(interval);
+                    alert('✅ Выполнено 10 быстрых кликов за 1 секунду (типичное поведение бота)');
+                }
+            }, 100);
+        }
+
+        // Welcome message
+        console.log('%c🔒 NoctoClick Tracker v1.0.0', 'font-size: 20px; font-weight: bold; color: #667eea');
+        console.log('Tracker активен. Данные будут отправлены через 5 секунд или при закрытии страницы.');
+        console.log('Используйте NoctoClick.getData() для просмотра собранных данных.');
+    </script>
+</body>
+</html>
