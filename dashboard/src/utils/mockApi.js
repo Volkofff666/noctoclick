@@ -129,6 +129,42 @@ const MOCK_EVENTS = [
   }
 ];
 
+// Генерация данных для графиков
+const generateTimeSeriesData = () => {
+  const hours = [];
+  const now = new Date();
+  
+  for (let i = 23; i >= 0; i--) {
+    const time = new Date(now.getTime() - i * 3600000);
+    const hour = time.getHours();
+    
+    hours.push({
+      time: `${hour}:00`,
+      legitimate: Math.floor(Math.random() * 100) + 50,
+      suspicious: Math.floor(Math.random() * 30) + 5,
+      fraud: Math.floor(Math.random() * 15) + 2
+    });
+  }
+  
+  return hours;
+};
+
+const generateHourlyData = () => {
+  const data = [];
+  
+  for (let i = 0; i < 24; i++) {
+    data.push({
+      hour: `${i}:00`,
+      clicks: Math.floor(Math.random() * 200) + 50
+    });
+  }
+  
+  return data;
+};
+
+const MOCK_TIME_SERIES = generateTimeSeriesData();
+const MOCK_HOURLY_DATA = generateHourlyData();
+
 // Delay для имитации сетевых запросов
 const delay = (ms = 300) => new Promise(resolve => setTimeout(resolve, ms));
 
@@ -262,6 +298,16 @@ export const mockStatsAPI = {
   getEvents: async (siteId, params = {}) => {
     await delay();
     return { events: MOCK_EVENTS };
+  },
+  
+  getTimeSeries: async (siteId, period = '24h') => {
+    await delay();
+    return { data: MOCK_TIME_SERIES };
+  },
+  
+  getHourlyData: async (siteId) => {
+    await delay();
+    return { data: MOCK_HOURLY_DATA };
   }
 };
 

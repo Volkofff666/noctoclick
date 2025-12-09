@@ -1,0 +1,32 @@
+.chartContainer {
+  background: var(--bg-primary);
+  padding: var(--spacing-xl);
+  border-radius: var(--border-radius-lg);
+  box-shadow: var(--shadow-sm);
+  border: 1px solid var(--border-color);
+}
+
+.chartTitle {
+  margin: 0 0 var(--spacing-lg) 0;
+  font-size: var(--font-size-lg);
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+/* Recharts tooltip customization */
+.chartContainer :global(.recharts-tooltip-wrapper) {
+  outline: none;
+}
+
+.chartContainer :global(.recharts-legend-wrapper) {
+  padding-top: var(--spacing-md);
+}
+
+.chartContainer :global(.recharts-legend-item-text) {
+  color: var(--text-primary) !important;
+}
+
+@media (max-width: 768px) {
+  .chartContainer {
+    padding: var(--spacing-md);
+  }
