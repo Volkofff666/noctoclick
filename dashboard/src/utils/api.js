@@ -109,6 +109,7 @@ export const affiliateAPI = {
   getStats: () => api.get('/affiliate/stats').then(res => res.data),
   getReferrals: () => api.get('/affiliate/referrals').then(res => res.data),
   getEarnings: () => api.get('/affiliate/earnings').then(res => res.data),
+  getEarningsChart: () => api.get('/affiliate/earnings/chart').then(res => res.data),
   requestPayout: (data) => api.post('/affiliate/payout', data)
 };
 
