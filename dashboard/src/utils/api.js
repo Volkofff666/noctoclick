@@ -74,10 +74,21 @@ export const authAPI = {
     localStorage.removeItem('accessToken');
     localStorage.removeItem('refreshToken');
     localStorage.removeItem('user');
+    localStorage.removeItem('currentSiteId');
   },
   
   getMe: async () => {
     const response = await api.get('/api/auth/me');
+    return response.data;
+  },
+  
+  updateProfile: async (data) => {
+    const response = await api.put('/api/auth/profile', data);
+    return response.data;
+  },
+  
+  changePassword: async (data) => {
+    const response = await api.put('/api/auth/password', data);
     return response.data;
   }
 };
