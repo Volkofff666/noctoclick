@@ -72,7 +72,7 @@
 }
 
 /* Dark theme */
-[data-theme="dark"] {
+html[data-theme="dark"] {
   --bg-primary: #1f2937;
   --bg-secondary: #111827;
   --bg-tertiary: #0f172a;
@@ -81,10 +81,10 @@
   --border-color: #374151;
   
   /* Shadows for dark theme */
-  --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.3);
-  --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.4);
-  --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.5);
-  --shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.6);
+  --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.5);
+  --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.6);
+  --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.7);
+  --shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.8);
 }
 
 * {
@@ -97,6 +97,11 @@ html {
   font-size: 16px;
 }
 
+html,
+body {
+  transition: background-color var(--transition-base), color var(--transition-base);
+}
+
 body {
   margin: 0;
   font-family: var(--font-family);
@@ -106,7 +111,6 @@ body {
   background: var(--bg-secondary);
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
-  transition: background-color var(--transition-base), color var(--transition-base);
 }
 
 code {

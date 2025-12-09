@@ -2,6 +2,7 @@
   display: flex;
   min-height: 100vh;
   background: var(--bg-secondary);
+  transition: background-color var(--transition-base);
 }
 
 .sidebar {
@@ -19,16 +20,16 @@
 }
 
 .sidebar.closed {
-  width: 80px;
+  width: 70px;
 }
 
 .logo {
+  height: var(--header-height);
   display: flex;
   align-items: center;
   gap: var(--spacing-md);
-  padding: var(--spacing-lg);
+  padding: 0 var(--spacing-lg);
   border-bottom: 1px solid var(--border-color);
-  height: var(--header-height);
 }
 
 .logoIcon {
@@ -36,6 +37,7 @@
   align-items: center;
   justify-content: center;
   color: var(--color-primary);
+  flex-shrink: 0;
 }
 
 .logoText {
@@ -45,12 +47,16 @@
   white-space: nowrap;
 }
 
+.sidebar.closed .logoText {
+  display: none;
+}
+
 .nav {
   flex: 1;
-  padding: var(--spacing-md);
+  padding: var(--spacing-lg);
   display: flex;
   flex-direction: column;
-  gap: 4px;
+  gap: var(--spacing-sm);
 }
 
 .navItem {
@@ -61,9 +67,10 @@
   border-radius: var(--border-radius);
   color: var(--text-secondary);
   text-decoration: none;
-  font-weight: 500;
-  font-size: var(--font-size-sm);
   transition: all var(--transition-fast);
+  position: relative;
+  overflow: hidden;
+  font-weight: 500;
 }
 
 .navItem:hover {
@@ -74,6 +81,19 @@
 .navItem.active {
   background: var(--color-primary);
   color: white;
+  font-weight: 600;
+}
+
+.navItem.active::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 4px;
+  height: 70%;
+  background: white;
+  border-radius: 0 2px 2px 0;
 }
 
 .navIcon {
@@ -83,56 +103,53 @@
   flex-shrink: 0;
 }
 
-.navText {
-  white-space: nowrap;
-}
-
-.closed .navText {
+.sidebar.closed .navText {
   display: none;
 }
 
 .toggleBtn {
-  margin: var(--spacing-md);
-  padding: 10px;
+  margin: var(--spacing-lg);
+  padding: var(--spacing-sm);
   border: 1px solid var(--border-color);
-  border-radius: var(--border-radius);
   background: var(--bg-secondary);
-  color: var(--text-secondary);
+  color: var(--text-primary);
+  border-radius: var(--border-radius);
   cursor: pointer;
-  transition: all var(--transition-fast);
   display: flex;
   align-items: center;
   justify-content: center;
+  transition: all var(--transition-fast);
 }
 
 .toggleBtn:hover {
   background: var(--bg-tertiary);
-  color: var(--text-primary);
+  border-color: var(--color-primary);
 }
 
 .main {
   flex: 1;
   margin-left: var(--sidebar-width);
-  transition: margin-left var(--transition-base);
   display: flex;
   flex-direction: column;
+  transition: margin-left var(--transition-base);
 }
 
-.sidebar.closed + .main {
-  margin-left: 80px;
+.sidebar.closed ~ .main {
+  margin-left: 70px;
 }
 
 .header {
   height: var(--header-height);
   background: var(--bg-primary);
   border-bottom: 1px solid var(--border-color);
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
   padding: 0 var(--spacing-xl);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
   position: sticky;
   top: 0;
-  z-index: 90; /* Увеличили с 50 до 90 */
+  z-index: 90;
+  transition: background-color var(--transition-base), border-color var(--transition-base);
 }
 
 .headerLeft,
@@ -144,23 +161,23 @@
 
 .siteSelector {
   position: relative;
-  z-index: 100; /* Добавили z-index для селектора */
+  z-index: 100;
 }
 
 .siteSelectorBtn,
 .userMenuBtn {
   display: flex;
   align-items: center;
-  gap: var(--spacing-sm);
-  padding: 8px 16px;
+  gap: var(--spacing-md);
+  padding: 10px 16px;
   border: 1px solid var(--border-color);
-  border-radius: var(--border-radius);
   background: var(--bg-secondary);
   color: var(--text-primary);
-  font-weight: 500;
-  font-size: var(--font-size-sm);
+  border-radius: var(--border-radius);
   cursor: pointer;
   transition: all var(--transition-fast);
+  font-weight: 500;
+  font-size: var(--font-size-sm);
 }
 
 .siteSelectorBtn:hover,
@@ -177,37 +194,49 @@
   transform: rotate(90deg);
 }
 
+.userMenu {
+  position: relative;
+  z-index: 100;
+}
+
 .dropdown {
   position: absolute;
   top: calc(100% + 8px);
-  left: 0; /* Изменили с right на left */
-  min-width: 280px;
-  max-width: 400px;
+  left: 0;
+  min-width: 250px;
   background: var(--bg-primary);
   border: 1px solid var(--border-color);
-  border-radius: var(--border-radius);
-  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3); /* Усилили тень */
-  padding: 4px;
-  z-index: 1000;
-  max-height: 400px;
-  overflow-y: auto;
+  border-radius: var(--border-radius-lg);
+  box-shadow: var(--shadow-xl);
+  overflow: hidden;
+  animation: slideDown 0.2s ease-out;
+}
+
+@keyframes slideDown {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 .dropdownItem {
+  width: 100%;
   display: flex;
   align-items: center;
   gap: var(--spacing-md);
-  padding: 10px 12px;
-  border-radius: 4px;
-  color: var(--text-primary);
-  text-decoration: none;
-  font-size: var(--font-size-sm);
-  cursor: pointer;
-  transition: all var(--transition-fast);
+  padding: 12px 16px;
   border: none;
   background: transparent;
-  width: 100%;
-  text-align: left;
+  color: var(--text-primary);
+  cursor: pointer;
+  transition: all var(--transition-fast);
+  text-decoration: none;
+  font-size: var(--font-size-sm);
+  font-weight: 500;
 }
 
 .dropdownItem:hover {
@@ -215,65 +244,42 @@
 }
 
 .dropdownItem.active {
-  background: var(--color-primary);
-  color: white;
-}
-
-.dropdownItem.active .siteDomain {
-  color: rgba(255, 255, 255, 0.8); /* Светлее для активного */
+  background: var(--bg-secondary);
+  color: var(--color-primary);
 }
 
 .siteName {
   font-weight: 600;
-  font-size: var(--font-size-sm);
+  color: var(--text-primary);
 }
 
 .siteDomain {
   font-size: var(--font-size-xs);
   color: var(--text-secondary);
-  margin-top: 2px;
 }
 
 .content {
   flex: 1;
   padding: var(--spacing-xl);
   max-width: var(--max-content-width);
-  margin: 0 auto;
   width: 100%;
-}
-
-.userMenu {
-  position: relative;
-  z-index: 100; /* Добавили z-index для меню пользователя */
+  margin: 0 auto;
 }
 
 @media (max-width: 768px) {
   .sidebar {
-    width: 80px;
+    transform: translateX(-100%);
   }
   
-  .sidebar .navText {
-    display: none;
-  }
-  
-  .sidebar .logoText {
-    display: none;
+  .sidebar.open {
+    transform: translateX(0);
   }
   
   .main {
-    margin-left: 80px;
-  }
-  
-  .header {
-    padding: 0 var(--spacing-md);
+    margin-left: 0;
   }
   
   .content {
     padding: var(--spacing-md);
-  }
-  
-  .dropdown {
-    left: auto;
-    right: 0;
   }
 }
