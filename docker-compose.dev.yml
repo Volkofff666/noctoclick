@@ -1,0 +1,30 @@
+version: '3.8'
+
+services:
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile.dev
+    command: npm run dev
+    volumes:
+      - ./backend/src:/app/src
+      - ./backend/package.json:/app/package.json
+    environment:
+      - NODE_ENV=development
+    ports:
+      - "3001:3001"
+
+  dashboard:
+    build:
+      context: ./dashboard
+      dockerfile: Dockerfile.dev
+    command: npm run dev
+    volumes:
+      - ./dashboard/src:/app/src
+      - ./dashboard/public:/app/public
+      - ./dashboard/package.json:/app/package.json
+      - ./dashboard/vite.config.js:/app/vite.config.js
+    environment:
+      - NODE_ENV=development
+    ports:
+      - "3000:3000"
