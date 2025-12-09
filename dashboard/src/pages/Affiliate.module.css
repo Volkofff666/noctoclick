@@ -4,22 +4,242 @@
   gap: var(--spacing-xl);
 }
 
-.header {
-  text-align: center;
-  padding: var(--spacing-2xl) 0;
+/* Hero секция */
+.hero {
+  background: linear-gradient(135deg, var(--color-primary) 0%, #6366f1 100%);
+  padding: var(--spacing-3xl) var(--spacing-2xl);
+  border-radius: var(--border-radius-lg);
+  color: white;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  box-shadow: var(--shadow-lg);
+  flex-wrap: wrap;
+  gap: var(--spacing-xl);
 }
 
-.header h1 {
+.heroContent h1 {
   margin: 0 0 var(--spacing-sm) 0;
-  font-size: var(--font-size-3xl);
+  font-size: 2rem;
+  font-weight: 700;
+}
+
+.heroContent p {
+  margin: 0;
+  font-size: var(--font-size-lg);
+  opacity: 0.9;
+}
+
+.heroStats {
+  display: flex;
+  gap: var(--spacing-xl);
+  align-items: center;
+}
+
+.heroStatItem {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--spacing-xs);
+}
+
+.heroStatValue {
+  font-size: 2rem;
+  font-weight: 700;
+}
+
+.heroStatLabel {
+  font-size: var(--font-size-sm);
+  opacity: 0.9;
+}
+
+.heroStatDivider {
+  width: 2px;
+  height: 60px;
+  background: rgba(255, 255, 255, 0.2);
+}
+
+/* Финансовая панель */
+.financePanel {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: var(--spacing-lg);
+}
+
+.financeCard {
+  background: var(--bg-primary);
+  padding: var(--spacing-xl);
+  border-radius: var(--border-radius-lg);
+  box-shadow: var(--shadow-sm);
+  border: 1px solid var(--border-color);
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-md);
+  transition: all var(--transition-base);
+}
+
+.financeCard:hover {
+  box-shadow: var(--shadow-md);
+  transform: translateY(-2px);
+}
+
+.financeHeader {
+  display: flex;
+  gap: var(--spacing-md);
+}
+
+.financeIcon {
+  width: 56px;
+  height: 56px;
+  border-radius: var(--border-radius);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.financeInfo {
+  flex: 1;
+}
+
+.financeLabel {
+  font-size: var(--font-size-sm);
+  color: var(--text-secondary);
+  margin-bottom: 4px;
+  font-weight: 500;
+}
+
+.financeValue {
+  font-size: 1.75rem;
   font-weight: 700;
   color: var(--text-primary);
 }
 
-.header p {
-  margin: 0;
-  font-size: var(--font-size-lg);
+.financeNote {
+  padding: var(--spacing-sm) var(--spacing-md);
+  background: rgba(245, 158, 11, 0.1);
+  border-radius: var(--border-radius);
+  font-size: var(--font-size-xs);
   color: var(--text-secondary);
+}
+
+.financeProgress {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-sm);
+}
+
+.progressBar {
+  height: 8px;
+  background: var(--bg-secondary);
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+.progressFill {
+  height: 100%;
+  background: linear-gradient(90deg, var(--color-primary), var(--color-success));
+  transition: width var(--transition-slow);
+  border-radius: 4px;
+}
+
+.financeProgress span {
+  font-size: var(--font-size-xs);
+  color: var(--text-secondary);
+}
+
+.levelBadges {
+  display: flex;
+  gap: var(--spacing-sm);
+  flex-wrap: wrap;
+}
+
+.levelBadge {
+  padding: 4px 10px;
+  background: var(--bg-secondary);
+  border-radius: 4px;
+  font-size: var(--font-size-xs);
+  font-weight: 600;
+  color: var(--text-secondary);
+  opacity: 0.5;
+  transition: all var(--transition-fast);
+}
+
+.levelBadge.active {
+  opacity: 1;
+  background: rgba(91, 123, 245, 0.1);
+  color: var(--color-primary);
+}
+
+.btnWithdraw {
+  padding: 10px 16px;
+  background: var(--color-success);
+  color: white;
+  border: none;
+  border-radius: var(--border-radius);
+  font-size: var(--font-size-sm);
+  font-weight: 600;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--spacing-sm);
+}
+
+.btnWithdraw:hover:not(:disabled) {
+  background: var(--color-success-dark);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
+}
+
+.btnWithdraw:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* Табы */
+.tabs {
+  display: flex;
+  gap: var(--spacing-sm);
+  background: var(--bg-primary);
+  padding: var(--spacing-sm);
+  border-radius: var(--border-radius-lg);
+  box-shadow: var(--shadow-sm);
+  border: 1px solid var(--border-color);
+  overflow-x: auto;
+}
+
+.tab {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-sm);
+  padding: 10px 20px;
+  background: transparent;
+  border: none;
+  border-radius: var(--border-radius);
+  color: var(--text-secondary);
+  font-size: var(--font-size-sm);
+  font-weight: 500;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+  white-space: nowrap;
+}
+
+.tab:hover {
+  background: var(--bg-secondary);
+  color: var(--text-primary);
+}
+
+.tab.active {
+  background: var(--color-primary);
+  color: white;
+}
+
+.tabContent {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-xl);
 }
 
 .loading {
@@ -144,42 +364,6 @@
   color: var(--text-secondary);
   font-size: var(--font-size-sm);
   line-height: 1.6;
-}
-
-/* Преимущества */
-.benefits {
-  background: rgba(91, 123, 245, 0.05);
-  padding: var(--spacing-xl);
-  border-radius: var(--border-radius);
-  border: 2px dashed var(--color-primary);
-}
-
-.benefits h3 {
-  margin: 0 0 var(--spacing-lg) 0;
-  font-size: var(--font-size-lg);
-  font-weight: 600;
-  color: var(--text-primary);
-  display: flex;
-  align-items: center;
-  gap: var(--spacing-sm);
-}
-
-.benefits ul {
-  margin: 0;
-  padding-left: var(--spacing-lg);
-  list-style: none;
-}
-
-.benefits li {
-  margin-bottom: var(--spacing-md);
-  color: var(--text-primary);
-  font-size: var(--font-size-base);
-  line-height: 1.6;
-  position: relative;
-}
-
-.benefits li:last-child {
-  margin-bottom: 0;
 }
 
 /* Реферальная ссылка */
@@ -397,17 +581,18 @@
 }
 
 .emptyState p {
-  margin: 0;
+  margin: 0 0 var(--spacing-lg) 0;
   font-size: var(--font-size-base);
   color: var(--text-secondary);
   max-width: 500px;
-  margin: 0 auto;
+  margin-left: auto;
+  margin-right: auto;
   line-height: 1.6;
 }
 
 /* Кнопки */
 .btnPrimary {
-  display: flex;
+  display: inline-flex;
   align-items: center;
   gap: var(--spacing-sm);
   padding: 10px 20px;
@@ -556,6 +741,24 @@
 }
 
 @media (max-width: 768px) {
+  .hero {
+    flex-direction: column;
+    text-align: center;
+  }
+  
+  .heroStats {
+    width: 100%;
+    justify-content: center;
+  }
+  
+  .heroStatDivider {
+    display: none;
+  }
+  
+  .financePanel {
+    grid-template-columns: 1fr;
+  }
+  
   .statsGrid {
     grid-template-columns: 1fr;
   }
@@ -575,5 +778,9 @@
   .btnShare {
     width: 100%;
     justify-content: center;
+  }
+  
+  .tabs {
+    overflow-x: auto;
   }
 }
