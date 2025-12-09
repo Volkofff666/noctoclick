@@ -264,4 +264,98 @@ router.get('/me', authenticateToken, async (req, res) => {
   }
 });
 
+// PUT /api/auth/profile - Обновить профиль
+router.put('/profile', authenticateToken, async (req, res) => {
+  const { fullName, companyName, phone, telegram } = req.body;
+
+  try {
+    // Обновляем профиль клиента
+    const result = await pool.query(`
+      UPDATE clients
+      SET 
+        full_name = COALESCE($1, full_name),
+        company_name = COALESCE($2, company_name),
+        phone = COALESCE($3, phone),
+        telegram = COALESCE($4, telegram),
+        updated_at = NOW()
+      WHERE user_id = $5
+      RETURNING full_name, company_name, phone, telegram
+    `, [fullName, companyName, phone, telegram, req.user.id]);
+
+    if (result.rows.length === 0) {
+      return res.status(404).json({ error: 'Профиль не найден' });
+    }
+
+    res.json({
+      message: 'Профиль обновлён',
+      profile: result.rows[0]
+    });
+  } catch (err) {
+    console.error('Update profile error:', err);
+    res.status(500).json({ error: 'Ошибка обновления профиля' });
+  }
+});
+
+// PUT /api/auth/password - Изменить пароль
+router.put('/password', authenticateToken, async (req, res) => {
+  const { currentPassword, newPassword } = req.body;
+
+  if (!currentPassword || !newPassword) {
+    return res.status(400).json({ error: 'Текущий и новый пароль обязательны' });
+  }
+
+  if (newPassword.length < 6) {
+    return res.status(400).json({ error: 'Новый пароль должен быть не менее 6 символов' });
+  }
+
+  try {
+    // Получаем текущий хэш пароля
+    const userResult = await pool.query(
+      'SELECT password_hash FROM users WHERE id = $1',
+      [req.user.id]
+    );
+
+    if (userResult.rows.length === 0) {
+      return res.status(404).json({ error: 'Пользователь не найден' });
+    }
+
+    const user = userResult.rows[0];
+
+    // Проверяем текущий пароль
+    const isValidPassword = await bcrypt.compare(currentPassword, user.password_hash);
+
+    if (!isValidPassword) {
+      return res.status(401).json({ error: 'Неверный текущий пароль' });
+    }
+
+    // Хэшируем новый пароль
+    const newPasswordHash = await bcrypt.hash(newPassword, SALT_ROUNDS);
+
+    // Обновляем пароль
+    await pool.query(
+      'UPDATE users SET password_hash = $1, updated_at = NOW() WHERE id = $2',
+      [newPasswordHash, req.user.id]
+    );
+
+    // Удаляем все старые сессии (кроме текущей)
+    const currentRefreshToken = req.headers['x-refresh-token'];
+    if (currentRefreshToken) {
+      await pool.query(
+        'DELETE FROM user_sessions WHERE user_id = $1 AND refresh_token != $2',
+        [req.user.id, currentRefreshToken]
+      );
+    } else {
+      await pool.query(
+        'DELETE FROM user_sessions WHERE user_id = $1',
+        [req.user.id]
+      );
+    }
+
+    res.json({ message: 'Пароль успешно изменён' });
+  } catch (err) {
+    console.error('Change password error:', err);
+    res.status(500).json({ error: 'Ошибка смены пароля' });
+  }
+});
+
 module.exports = router;
