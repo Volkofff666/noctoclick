@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Link, useLocation, Outlet, useNavigate, useSearchParams } from 'react-router-dom';
-import { BarChart3, Shield, Settings, Link as LinkIcon, ChevronLeft, ChevronRight, Globe, User, LogOut } from 'lucide-react';
+import { BarChart3, Shield, Settings, Link as LinkIcon, ChevronLeft, ChevronRight, Globe, User, LogOut, BookOpen } from 'lucide-react';
 import { authAPI, sitesAPI } from '../../utils/api';
 import ThemeToggle from '../ThemeToggle/ThemeToggle';
 import styles from './Layout.module.css';
@@ -17,6 +17,7 @@ function Layout() {
   const [user, setUser] = useState(null);
 
   const navigation = [
+    { name: 'Начало работы', path: '/getting-started', icon: BookOpen },
     { name: 'Мои сайты', path: '/sites', icon: Globe },
     { name: 'Дашборд', path: '/dashboard', icon: BarChart3 },
     { name: 'Блокировки', path: '/blocked', icon: Shield },
@@ -79,8 +80,8 @@ function Layout() {
         
         if (siteToSelect) {
           setCurrentSite(siteToSelect);
-          // Если мы не на странице /sites, добавляем параметр site в URL
-          if (location.pathname !== '/sites' && !siteIdFromUrl) {
+          // Если мы не на странице /sites и /getting-started, добавляем параметр site в URL
+          if (location.pathname !== '/sites' && location.pathname !== '/getting-started' && !siteIdFromUrl) {
             setSearchParams({ site: siteToSelect.id });
           }
         }
@@ -96,7 +97,7 @@ function Layout() {
     setShowSiteDropdown(false);
     
     // Обновляем URL параметр site
-    if (location.pathname !== '/sites') {
+    if (location.pathname !== '/sites' && location.pathname !== '/getting-started') {
       setSearchParams({ site: site.id });
     }
   };
@@ -151,7 +152,7 @@ function Layout() {
       <div className={styles.main}>
         <header className={styles.header}>
           <div className={styles.headerLeft}>
-            {currentSite && sites.length > 0 && (
+            {currentSite && sites.length > 0 && location.pathname !== '/getting-started' && (
               <div className={styles.siteSelector}>
                 <button 
                   onClick={() => setShowSiteDropdown(!showSiteDropdown)}

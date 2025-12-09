@@ -9,6 +9,7 @@ import Login from './pages/Login';
 import Register from './pages/Register';
 import Sites from './pages/Sites';
 import Profile from './pages/Profile';
+import GettingStarted from './pages/GettingStarted';
 import './styles/global.css';
 
 // Проверка авторизации
@@ -27,7 +28,7 @@ function RedirectIfAuth({ children }) {
   const token = localStorage.getItem('accessToken');
   
   if (token) {
-    return <Navigate to="/sites" replace />;
+    return <Navigate to="/getting-started" replace />;
   }
   
   return children;
@@ -56,7 +57,8 @@ function App() {
               <Layout />
             </RequireAuth>
           }>
-            <Route index element={<Navigate to="/sites" replace />} />
+            <Route index element={<Navigate to="/getting-started" replace />} />
+            <Route path="getting-started" element={<GettingStarted />} />
             <Route path="sites" element={<Sites />} />
             <Route path="dashboard" element={<Dashboard />} />
             <Route path="blocked" element={<BlockedIPs />} />
