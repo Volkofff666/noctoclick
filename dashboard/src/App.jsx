@@ -10,6 +10,7 @@ import Register from './pages/Register';
 import Sites from './pages/Sites';
 import Profile from './pages/Profile';
 import GettingStarted from './pages/GettingStarted';
+import Affiliate from './pages/Affiliate';
 import './styles/global.css';
 
 // Проверка авторизации
@@ -64,6 +65,7 @@ function App() {
             <Route path="blocked" element={<BlockedIPs />} />
             <Route path="settings" element={<Settings />} />
             <Route path="yandex" element={<YandexConnect />} />
+            <Route path="affiliate" element={<Affiliate />} />
             <Route path="profile" element={<Profile />} />
           </Route>
 

@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Link, useLocation, Outlet, useNavigate, useSearchParams } from 'react-router-dom';
-import { BarChart3, Shield, Settings, Link as LinkIcon, ChevronLeft, ChevronRight, Globe, User, LogOut, BookOpen } from 'lucide-react';
+import { BarChart3, Shield, Settings, Link as LinkIcon, ChevronLeft, ChevronRight, Globe, User, LogOut, BookOpen, Gift } from 'lucide-react';
 import { authAPI, sitesAPI } from '../../utils/api';
 import ThemeToggle from '../ThemeToggle/ThemeToggle';
 import styles from './Layout.module.css';
@@ -22,7 +22,8 @@ function Layout() {
     { name: 'Дашборд', path: '/dashboard', icon: BarChart3 },
     { name: 'Блокировки', path: '/blocked', icon: Shield },
     { name: 'Настройки', path: '/settings', icon: Settings },
-    { name: 'Яндекс.Директ', path: '/yandex', icon: LinkIcon }
+    { name: 'Яндекс.Директ', path: '/yandex', icon: LinkIcon },
+    { name: 'Партнёрская программа', path: '/affiliate', icon: Gift }
   ];
 
   useEffect(() => {
@@ -30,7 +31,6 @@ function Layout() {
     loadSites();
   }, []);
 
-  // Синхронизация currentSite с URL параметром
   useEffect(() => {
     const siteIdFromUrl = searchParams.get('site');
     if (siteIdFromUrl && sites.length > 0) {
@@ -58,7 +58,6 @@ function Layout() {
       const data = await sitesAPI.getAll();
       setSites(data.sites);
       
-      // Автоматически выбираем сайт
       if (data.sites.length > 0) {
         const siteIdFromUrl = searchParams.get('site');
         const savedSiteId = localStorage.getItem('currentSiteId');
@@ -66,22 +65,18 @@ function Layout() {
         let siteToSelect;
         
         if (siteIdFromUrl) {
-          // Приоритет - сайт из URL
           siteToSelect = data.sites.find(s => s.id === parseInt(siteIdFromUrl));
         } else if (savedSiteId) {
-          // Потом - сохранённый в localStorage
           siteToSelect = data.sites.find(s => s.id === parseInt(savedSiteId));
         }
         
-        // Если не нашли - первый сайт
         if (!siteToSelect) {
           siteToSelect = data.sites[0];
         }
         
         if (siteToSelect) {
           setCurrentSite(siteToSelect);
-          // Если мы не на странице /sites и /getting-started, добавляем параметр site в URL
-          if (location.pathname !== '/sites' && location.pathname !== '/getting-started' && !siteIdFromUrl) {
+          if (location.pathname !== '/sites' && location.pathname !== '/getting-started' && location.pathname !== '/affiliate' && !siteIdFromUrl) {
             setSearchParams({ site: siteToSelect.id });
           }
         }
@@ -96,8 +91,7 @@ function Layout() {
     localStorage.setItem('currentSiteId', site.id);
     setShowSiteDropdown(false);
     
-    // Обновляем URL параметр site
-    if (location.pathname !== '/sites' && location.pathname !== '/getting-started') {
+    if (location.pathname !== '/sites' && location.pathname !== '/getting-started' && location.pathname !== '/affiliate') {
       setSearchParams({ site: site.id });
     }
   };
@@ -111,6 +105,8 @@ function Layout() {
       navigate('/login');
     }
   };
+
+  const pagesWithoutSiteSelector = ['/sites', '/getting-started', '/affiliate'];
 
   return (
     <div className={styles.layout}>
@@ -152,7 +148,7 @@ function Layout() {
       <div className={styles.main}>
         <header className={styles.header}>
           <div className={styles.headerLeft}>
-            {currentSite && sites.length > 0 && location.pathname !== '/getting-started' && (
+            {currentSite && sites.length > 0 && !pagesWithoutSiteSelector.includes(location.pathname) && (
               <div className={styles.siteSelector}>
                 <button 
                   onClick={() => setShowSiteDropdown(!showSiteDropdown)}
