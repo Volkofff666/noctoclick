@@ -1,125 +1,374 @@
 .settings {
   display: flex;
   flex-direction: column;
-  gap: var(--spacing-lg);
+  gap: 24px;
 }
 
 .section {
   background: var(--bg-primary);
-  padding: var(--spacing-lg);
-  border-radius: var(--border-radius);
+  padding: 32px;
+  border-radius: var(--border-radius-lg);
   box-shadow: var(--shadow-sm);
+  border: 1px solid var(--border-color);
 }
 
-.section h2 {
-  margin: 0 0 var(--spacing-lg) 0;
-  font-size: var(--font-size-xl);
+.sectionHeader {
+  margin-bottom: 32px;
+  padding-bottom: 20px;
+  border-bottom: 2px solid var(--border-color);
+}
+
+.sectionHeader h2 {
+  margin: 0 0 8px 0;
+  font-size: 24px;
+  font-weight: 700;
+  color: var(--text-primary);
+  letter-spacing: var(--letter-spacing-tight);
+}
+
+.sectionHeader p {
+  margin: 0;
+  color: var(--text-secondary);
+  font-size: 15px;
 }
 
 .formGrid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-  gap: var(--spacing-lg);
-  margin-bottom: var(--spacing-lg);
+  gap: 32px;
+  margin-bottom: 32px;
 }
 
 .formGroup {
   display: flex;
   flex-direction: column;
+  gap: 12px;
 }
 
 .formGroup label {
-  font-weight: 500;
-  margin-bottom: var(--spacing-xs);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-weight: 600;
   color: var(--text-primary);
+  font-size: 15px;
 }
 
-.formGroup input {
-  padding: var(--spacing-sm);
-  border: 1px solid var(--border-color);
-  border-radius: var(--border-radius-sm);
-  font-size: var(--font-size-base);
+.badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 4px 12px;
+  background: var(--bg-secondary);
+  border-radius: 6px;
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--color-primary);
 }
 
-.formGroup input:focus {
+.badgeDanger {
+  background: rgba(239, 68, 68, 0.1);
+  color: var(--color-danger);
+}
+
+.badgeWarning {
+  background: rgba(245, 158, 11, 0.1);
+  color: var(--color-warning);
+}
+
+.slider {
+  width: 100%;
+  height: 6px;
+  border-radius: 3px;
+  background: var(--bg-secondary);
   outline: none;
-  border-color: var(--color-primary);
+  -webkit-appearance: none;
+  appearance: none;
+}
+
+.slider::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: var(--color-primary);
+  cursor: pointer;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  transition: all var(--transition-fast);
+}
+
+.slider::-webkit-slider-thumb:hover {
+  background: var(--color-primary-dark);
+  transform: scale(1.1);
+}
+
+.slider::-moz-range-thumb {
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: var(--color-primary);
+  cursor: pointer;
+  border: none;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  transition: all var(--transition-fast);
+}
+
+.slider::-moz-range-thumb:hover {
+  background: var(--color-primary-dark);
+  transform: scale(1.1);
 }
 
 .formGroup small {
-  margin-top: var(--spacing-xs);
-  font-size: var(--font-size-xs);
   color: var(--text-secondary);
+  font-size: 13px;
+  line-height: 1.4;
 }
 
-.checkbox {
+.toggleGroup {
+  margin-bottom: 32px;
+}
+
+.toggle {
+  background: var(--bg-secondary);
+  border-radius: var(--border-radius);
+  padding: 20px;
+  border: 2px solid var(--border-color);
+  transition: all var(--transition-fast);
+}
+
+.toggle:hover {
+  border-color: var(--color-primary);
+}
+
+.toggleInput {
+  display: none;
+}
+
+.toggleLabel {
   display: flex;
   align-items: center;
-  gap: var(--spacing-sm);
-  margin-bottom: var(--spacing-lg);
-}
-
-.checkbox input {
-  width: 20px;
-  height: 20px;
-  cursor: pointer;
-}
-
-.checkbox label {
+  gap: 16px;
   cursor: pointer;
   user-select: none;
 }
 
+.toggleSwitch {
+  position: relative;
+  width: 48px;
+  height: 28px;
+  background: var(--color-gray-300);
+  border-radius: 14px;
+  transition: background var(--transition-base);
+  flex-shrink: 0;
+}
+
+.toggleInput:checked + .toggleLabel .toggleSwitch {
+  background: var(--color-primary);
+}
+
+.toggleSlider {
+  position: absolute;
+  top: 3px;
+  left: 3px;
+  width: 22px;
+  height: 22px;
+  background: white;
+  border-radius: 50%;
+  transition: transform var(--transition-base);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.toggleInput:checked + .toggleLabel .toggleSlider {
+  transform: translateX(20px);
+}
+
+.toggleText {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.toggleTitle {
+  font-weight: 600;
+  color: var(--text-primary);
+  font-size: 15px;
+}
+
+.toggleDesc {
+  color: var(--text-secondary);
+  font-size: 13px;
+}
+
 .actions {
   display: flex;
-  justify-content: flex-end;
+  justify-content: space-between;
   align-items: center;
-  gap: var(--spacing-md);
-  padding-top: var(--spacing-lg);
-  border-top: 1px solid var(--border-color);
+  padding-top: 24px;
+  border-top: 2px solid var(--border-color);
+}
+
+.savedMessage {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--color-success);
+  font-weight: 600;
+  font-size: 14px;
+}
+
+.savedMessage svg {
+  color: var(--color-success);
 }
 
 .btnPrimary {
-  padding: var(--spacing-sm) var(--spacing-lg);
+  padding: 12px 32px;
   background: var(--color-primary);
   color: white;
-  border-radius: var(--border-radius-sm);
-  font-weight: 500;
-  transition: background var(--transition-fast);
+  border-radius: 8px;
+  font-weight: 600;
+  font-size: 15px;
+  transition: all var(--transition-fast);
+  border: none;
+  cursor: pointer;
 }
 
-.btnPrimary:hover {
+.btnPrimary:hover:not(:disabled) {
   background: var(--color-primary-dark);
+  transform: translateY(-1px);
+  box-shadow: 0 8px 16px rgba(91, 123, 245, 0.3);
 }
 
-.saved {
-  color: var(--color-success);
-  font-weight: 500;
+.btnPrimary:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
 }
 
-.info {
-  display: flex;
-  flex-direction: column;
-  gap: var(--spacing-md);
+.infoGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 20px;
 }
 
-.infoItem {
-  display: flex;
-  justify-content: space-between;
-  padding: var(--spacing-sm) 0;
-  border-bottom: 1px solid var(--border-color);
-}
-
-.infoItem:last-child {
-  border-bottom: none;
+.infoCard {
+  padding: 20px;
+  background: var(--bg-secondary);
+  border-radius: var(--border-radius);
+  border: 1px solid var(--border-color);
 }
 
 .infoLabel {
-  font-weight: 500;
+  font-size: 12px;
+  font-weight: 600;
   color: var(--text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-bottom: 8px;
 }
 
-.statusActive {
-  color: var(--color-success);
+.infoValue {
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.infoValue code {
+  background: var(--bg-primary);
+  padding: 4px 8px;
+  border-radius: 4px;
+  font-size: 13px;
+  color: var(--color-primary);
+  font-family: var(--font-family-mono);
   font-weight: 500;
+}
+
+.statusBadge {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 12px;
+  background: rgba(16, 185, 129, 0.1);
+  color: var(--color-success-dark);
+  border-radius: 6px;
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.statusDot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--color-success);
+  animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.5; }
+}
+
+.dangerZone {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.dangerItem {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 20px;
+  background: rgba(239, 68, 68, 0.05);
+  border: 1px solid rgba(239, 68, 68, 0.2);
+  border-radius: var(--border-radius);
+  gap: 20px;
+}
+
+.dangerTitle {
+  font-weight: 600;
+  color: var(--text-primary);
+  margin-bottom: 4px;
+  font-size: 15px;
+}
+
+.dangerDesc {
+  color: var(--text-secondary);
+  font-size: 13px;
+}
+
+.btnDanger {
+  padding: 8px 20px;
+  background: transparent;
+  color: var(--color-danger);
+  border: 2px solid var(--color-danger);
+  border-radius: 6px;
+  font-weight: 600;
+  font-size: 14px;
+  transition: all var(--transition-fast);
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.btnDanger:hover {
+  background: var(--color-danger);
+  color: white;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(239, 68, 68, 0.3);
+}
+
+@media (max-width: 768px) {
+  .section {
+    padding: 20px;
+  }
+  
+  .infoGrid {
+    grid-template-columns: 1fr;
+  }
+  
+  .dangerItem {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  
+  .btnDanger {
+    width: 100%;
+  }
 }
