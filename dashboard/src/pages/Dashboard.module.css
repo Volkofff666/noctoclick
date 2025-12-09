@@ -7,7 +7,7 @@
 .header {
   display: flex;
   justify-content: space-between;
-  align-items: center;
+  align-items: flex-start;
   gap: var(--spacing-lg);
   flex-wrap: wrap;
 }
@@ -23,6 +23,13 @@
   margin: var(--spacing-xs) 0 0 0;
   color: var(--text-secondary);
   font-size: var(--font-size-base);
+}
+
+.headerActions {
+  display: flex;
+  gap: var(--spacing-md);
+  align-items: center;
+  flex-wrap: wrap;
 }
 
 .loading {
@@ -59,6 +66,27 @@
 .periodSelector button.active {
   background: var(--color-primary);
   color: white;
+}
+
+.btnExport {
+  padding: 8px 16px;
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-color);
+  color: var(--text-primary);
+  border-radius: var(--border-radius);
+  font-size: var(--font-size-sm);
+  font-weight: 500;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-sm);
+}
+
+.btnExport:hover {
+  background: var(--color-primary);
+  color: white;
+  border-color: var(--color-primary);
 }
 
 .statsGrid {
@@ -140,11 +168,97 @@
   border: 1px solid var(--border-color);
 }
 
-.section h2 {
-  margin: 0 0 var(--spacing-lg) 0;
+.sectionHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: var(--spacing-lg);
+  flex-wrap: wrap;
+  gap: var(--spacing-md);
+}
+
+.sectionHeader h2 {
+  margin: 0;
   font-size: var(--font-size-xl);
   font-weight: 600;
   color: var(--text-primary);
+}
+
+/* Фильтры */
+.filters {
+  display: flex;
+  gap: var(--spacing-md);
+  margin-bottom: var(--spacing-lg);
+  flex-wrap: wrap;
+}
+
+.searchBox {
+  flex: 1;
+  min-width: 250px;
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-sm);
+  padding: 10px 14px;
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-color);
+  border-radius: var(--border-radius);
+  transition: all var(--transition-fast);
+}
+
+.searchBox:focus-within {
+  border-color: var(--color-primary);
+  box-shadow: 0 0 0 3px rgba(91, 123, 245, 0.1);
+}
+
+.searchBox svg {
+  color: var(--text-secondary);
+  flex-shrink: 0;
+}
+
+.searchBox input {
+  flex: 1;
+  border: none;
+  background: transparent;
+  color: var(--text-primary);
+  font-size: var(--font-size-sm);
+  outline: none;
+}
+
+.filterButtons {
+  display: flex;
+  gap: 4px;
+  align-items: center;
+  background: var(--bg-secondary);
+  padding: 4px;
+  border-radius: var(--border-radius);
+}
+
+.filterButtons svg {
+  color: var(--text-secondary);
+  margin: 0 8px;
+}
+
+.filterButtons button {
+  padding: 6px 12px;
+  border: none;
+  background: transparent;
+  color: var(--text-secondary);
+  font-size: var(--font-size-sm);
+  font-weight: 500;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+  white-space: nowrap;
+}
+
+.filterButtons button:hover {
+  background: var(--bg-tertiary);
+  color: var(--text-primary);
+}
+
+.filterButtons button.active {
+  background: var(--color-primary);
+  color: white;
 }
 
 .eventsTable {
@@ -189,6 +303,13 @@
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+}
+
+.noResults {
+  text-align: center;
+  padding: var(--spacing-xl) !important;
+  color: var(--text-secondary);
+  font-style: italic;
 }
 
 .badge {
@@ -242,7 +363,19 @@
     align-items: stretch;
   }
   
+  .headerActions {
+    flex-direction: column;
+  }
+  
   .periodSelector {
     flex-wrap: wrap;
+  }
+  
+  .filters {
+    flex-direction: column;
+  }
+  
+  .searchBox {
+    min-width: 100%;
   }
 }

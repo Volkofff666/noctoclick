@@ -1,12 +1,13 @@
 import { useState, useEffect } from 'react';
 import { useSearchParams } from 'react-router-dom';
-import { BarChart3, TrendingUp, Shield, AlertTriangle, Activity } from 'lucide-react';
+import { BarChart3, TrendingUp, Shield, AlertTriangle, Activity, Download, Search, Filter } from 'lucide-react';
 import { sitesAPI, statsAPI } from '../utils/api';
 import { useToast } from '../components/Toast/ToastContainer';
 import EmptyState from '../components/EmptyState/EmptyState';
 import LineChart from '../components/Charts/LineChart';
 import PieChart from '../components/Charts/PieChart';
 import CustomBarChart from '../components/Charts/BarChart';
+import { exportEventsToCSV, exportStatsToCSV } from '../utils/exportCSV';
 import styles from './Dashboard.module.css';
 
 function Dashboard() {
@@ -14,29 +15,48 @@ function Dashboard() {
   const toast = useToast();
   const [stats, setStats] = useState(null);
   const [events, setEvents] = useState([]);
+  const [filteredEvents, setFilteredEvents] = useState([]);
   const [timeSeriesData, setTimeSeriesData] = useState([]);
   const [hourlyData, setHourlyData] = useState([]);
   const [loading, setLoading] = useState(true);
   const [period, setPeriod] = useState('24h');
+  const [searchQuery, setSearchQuery] = useState('');
+  const [statusFilter, setStatusFilter] = useState('all');
+  const [currentSite, setCurrentSite] = useState(null);
   const siteId = searchParams.get('site');
 
   useEffect(() => {
     if (siteId) {
       loadData();
+      loadSiteInfo();
     }
   }, [siteId, period]);
+
+  useEffect(() => {
+    filterEvents();
+  }, [searchQuery, statusFilter, events]);
+
+  const loadSiteInfo = async () => {
+    try {
+      const data = await sitesAPI.getById(siteId);
+      setCurrentSite(data.site);
+    } catch (err) {
+      console.error('Load site error:', err);
+    }
+  };
 
   const loadData = async () => {
     try {
       setLoading(true);
       const [statsData, eventsData, timeSeriesResult, hourlyResult] = await Promise.all([
         sitesAPI.getStats(siteId, period),
-        statsAPI.getEvents(siteId, { limit: 10 }),
+        statsAPI.getEvents(siteId, { limit: 50 }),
         statsAPI.getTimeSeries(siteId, period),
         statsAPI.getHourlyData(siteId)
       ]);
       setStats(statsData.stats);
       setEvents(eventsData.events || []);
+      setFilteredEvents(eventsData.events || []);
       setTimeSeriesData(timeSeriesResult.data || []);
       setHourlyData(hourlyResult.data || []);
     } catch (err) {
@@ -45,6 +65,48 @@ function Dashboard() {
     } finally {
       setLoading(false);
     }
+  };
+
+  const filterEvents = () => {
+    let filtered = [...events];
+
+    // Поиск по IP
+    if (searchQuery) {
+      filtered = filtered.filter(event => 
+        event.ip.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        event.user_agent.toLowerCase().includes(searchQuery.toLowerCase())
+      );
+    }
+
+    // Фильтр по статусу
+    if (statusFilter !== 'all') {
+      filtered = filtered.filter(event => {
+        if (statusFilter === 'fraud') return event.is_fraud;
+        if (statusFilter === 'suspicious') return event.is_suspicious && !event.is_fraud;
+        if (statusFilter === 'legitimate') return !event.is_suspicious && !event.is_fraud;
+        return true;
+      });
+    }
+
+    setFilteredEvents(filtered);
+  };
+
+  const handleExportEvents = () => {
+    if (filteredEvents.length === 0) {
+      toast.warning('Нет событий для экспорта');
+      return;
+    }
+    exportEventsToCSV(filteredEvents, currentSite?.name || 'events');
+    toast.success(`Экспортировано ${filteredEvents.length} событий`);
+  };
+
+  const handleExportStats = () => {
+    if (!stats) {
+      toast.warning('Нет статистики для экспорта');
+      return;
+    }
+    exportStatsToCSV(stats, currentSite?.name || 'stats', period);
+    toast.success('Статистика экспортирована');
   };
 
   if (!siteId) {
@@ -115,30 +177,36 @@ function Dashboard() {
           <h1>Дашборд</h1>
           <p>Статистика защиты от скликивания за {period === '1h' ? '1 час' : period === '24h' ? '24 часа' : period === '7d' ? '7 дней' : '30 дней'}</p>
         </div>
-        <div className={styles.periodSelector}>
-          <button 
-            onClick={() => setPeriod('1h')} 
-            className={period === '1h' ? styles.active : ''}
-          >
-            1 час
-          </button>
-          <button 
-            onClick={() => setPeriod('24h')} 
-            className={period === '24h' ? styles.active : ''}
-          >
-            24 часа
-          </button>
-          <button 
-            onClick={() => setPeriod('7d')} 
-            className={period === '7d' ? styles.active : ''}
-          >
-            7 дней
-          </button>
-          <button 
-            onClick={() => setPeriod('30d')} 
-            className={period === '30d' ? styles.active : ''}
-          >
-            30 дней
+        <div className={styles.headerActions}>
+          <div className={styles.periodSelector}>
+            <button 
+              onClick={() => setPeriod('1h')} 
+              className={period === '1h' ? styles.active : ''}
+            >
+              1 час
+            </button>
+            <button 
+              onClick={() => setPeriod('24h')} 
+              className={period === '24h' ? styles.active : ''}
+            >
+              24 часа
+            </button>
+            <button 
+              onClick={() => setPeriod('7d')} 
+              className={period === '7d' ? styles.active : ''}
+            >
+              7 дней
+            </button>
+            <button 
+              onClick={() => setPeriod('30d')} 
+              className={period === '30d' ? styles.active : ''}
+            >
+              30 дней
+            </button>
+          </div>
+          <button onClick={handleExportStats} className={styles.btnExport}>
+            <Download size={16} />
+            Экспорт статистики
           </button>
         </div>
       </div>
@@ -222,7 +290,54 @@ function Dashboard() {
       {/* Последние события */}
       {events.length > 0 && (
         <div className={styles.section}>
-          <h2>Последние события</h2>
+          <div className={styles.sectionHeader}>
+            <h2>Последние события</h2>
+            <button onClick={handleExportEvents} className={styles.btnExport}>
+              <Download size={16} />
+              Экспорт CSV ({filteredEvents.length})
+            </button>
+          </div>
+
+          {/* Фильтры */}
+          <div className={styles.filters}>
+            <div className={styles.searchBox}>
+              <Search size={18} />
+              <input
+                type="text"
+                placeholder="Поиск по IP или User Agent..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+              />
+            </div>
+            <div className={styles.filterButtons}>
+              <Filter size={18} />
+              <button 
+                onClick={() => setStatusFilter('all')}
+                className={statusFilter === 'all' ? styles.active : ''}
+              >
+                Все
+              </button>
+              <button 
+                onClick={() => setStatusFilter('legitimate')}
+                className={statusFilter === 'legitimate' ? styles.active : ''}
+              >
+                Легитимные
+              </button>
+              <button 
+                onClick={() => setStatusFilter('suspicious')}
+                className={statusFilter === 'suspicious' ? styles.active : ''}
+              >
+                Подозрительные
+              </button>
+              <button 
+                onClick={() => setStatusFilter('fraud')}
+                className={statusFilter === 'fraud' ? styles.active : ''}
+              >
+                Фрод
+              </button>
+            </div>
+          </div>
+
           <div className={styles.eventsTable}>
             <table>
               <thead>
@@ -235,21 +350,29 @@ function Dashboard() {
                 </tr>
               </thead>
               <tbody>
-                {events.map((event) => (
-                  <tr key={event.id}>
-                    <td><code>{event.ip}</code></td>
-                    <td className={styles.userAgent}>{event.user_agent}</td>
-                    <td>
-                      <span className={`${styles.badge} ${event.is_fraud ? styles.danger : event.is_suspicious ? styles.warning : styles.success}`}>
-                        {event.is_fraud ? 'Фрод' : event.is_suspicious ? 'Подозрительный' : 'Легитимный'}
-                      </span>
+                {filteredEvents.length === 0 ? (
+                  <tr>
+                    <td colSpan="5" className={styles.noResults}>
+                      Ничего не найдено. Попробуйте изменить фильтры.
                     </td>
-                    <td>
-                      <span className={styles.score}>{event.fraud_score}</span>
-                    </td>
-                    <td>{new Date(event.created_at).toLocaleString('ru')}</td>
                   </tr>
-                ))}
+                ) : (
+                  filteredEvents.map((event) => (
+                    <tr key={event.id}>
+                      <td><code>{event.ip}</code></td>
+                      <td className={styles.userAgent}>{event.user_agent}</td>
+                      <td>
+                        <span className={`${styles.badge} ${event.is_fraud ? styles.danger : event.is_suspicious ? styles.warning : styles.success}`}>
+                          {event.is_fraud ? 'Фрод' : event.is_suspicious ? 'Подозрительный' : 'Легитимный'}
+                        </span>
+                      </td>
+                      <td>
+                        <span className={styles.score}>{event.fraud_score}</span>
+                      </td>
+                      <td>{new Date(event.created_at).toLocaleString('ru')}</td>
+                    </tr>
+                  ))
+                )}
               </tbody>
             </table>
           </div>
