@@ -9,12 +9,11 @@ function Dashboard() {
   const [stats, setStats] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [siteId, setSiteId] = useState('test-api-key-12345678'); // Default test site
+  const [siteId, setSiteId] = useState('test-api-key-12345678');
   const [period, setPeriod] = useState('24h');
 
   useEffect(() => {
     loadStats();
-    // Refresh every 30 seconds
     const interval = setInterval(loadStats, 30000);
     return () => clearInterval(interval);
   }, [siteId, period]);
@@ -27,15 +26,22 @@ function Dashboard() {
       setError(null);
     } catch (err) {
       console.error('Failed to load stats:', err);
-      setError('Ошибка загрузки данных');
+      setError('Failed to load statistics. Please check your connection.');
     } finally {
       setLoading(false);
     }
   };
 
+  const RefreshIcon = () => (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+      <polyline points="23 4 23 10 17 10"></polyline>
+      <polyline points="1 20 1 14 7 14"></polyline>
+      <path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"></path>
+    </svg>
+  );
+
   return (
     <div className={styles.dashboard}>
-      {/* Period selector */}
       <div className={styles.controls}>
         <div className={styles.periodSelector}>
           {['1h', '6h', '24h', '7d', '30d'].map(p => (
@@ -44,48 +50,45 @@ function Dashboard() {
               className={`${styles.periodBtn} ${period === p ? styles.active : ''}`}
               onClick={() => setPeriod(p)}
             >
-              {p}
+              {p.replace('h', ' Hours').replace('d', ' Days')}
             </button>
           ))}
         </div>
         <button onClick={loadStats} className={styles.refreshBtn}>
-          🔄 Обновить
+          <RefreshIcon />
+          Refresh
         </button>
       </div>
 
       {loading && !stats ? (
-        <div className={styles.loading}>Загрузка...</div>
+        <div className={styles.loading}>Loading statistics...</div>
       ) : error ? (
         <div className={styles.error}>{error}</div>
       ) : stats ? (
         <>
-          {/* Stats cards */}
           <StatsCards stats={stats.stats} />
 
-          {/* Traffic chart */}
           <div className={styles.section}>
-            <h2>График трафика</h2>
+            <h2>Traffic Overview</h2>
             <TrafficChart data={stats.hourly} />
           </div>
 
-          {/* Recent events */}
           <div className={styles.section}>
-            <h2>Последние события</h2>
+            <h2>Recent Events</h2>
             <RecentEvents siteId={siteId} />
           </div>
 
-          {/* Top IPs */}
           {stats.topIps && stats.topIps.length > 0 && (
             <div className={styles.section}>
-              <h2>Подозрительные IP-адреса</h2>
+              <h2>Suspicious IP Addresses</h2>
               <div className={styles.ipsTable}>
                 <table>
                   <thead>
                     <tr>
-                      <th>IP адрес</th>
-                      <th>Кол-во кликов</th>
+                      <th>IP Address</th>
+                      <th>Click Count</th>
                       <th>Fraud Score</th>
-                      <th>Статус</th>
+                      <th>Status</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -100,9 +103,9 @@ function Dashboard() {
                         </td>
                         <td>
                           {item.is_fraud ? (
-                            <span className={styles.badgeDanger}>🚨 Фрод</span>
+                            <span className={styles.badgeDanger}>Fraud</span>
                           ) : (
-                            <span className={styles.badgeWarning}>⚠️ Подозрительный</span>
+                            <span className={styles.badgeWarning}>Suspicious</span>
                           )}
                         </td>
                       </tr>

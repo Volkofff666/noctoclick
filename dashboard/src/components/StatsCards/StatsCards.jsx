@@ -5,51 +5,57 @@ function StatsCards({ stats }) {
 
   const cards = [
     {
-      title: 'Всего кликов',
+      title: 'Total Events',
       value: stats.total,
-      icon: '👆',
+      change: '+12.5%',
+      trend: 'up',
       color: 'primary'
     },
     {
-      title: 'Легитимные',
+      title: 'Legitimate',
       value: stats.legitimate,
-      icon: '✅',
+      percentage: stats.total > 0 ? ((stats.legitimate / stats.total) * 100).toFixed(1) : 0,
       color: 'success'
     },
     {
-      title: 'Подозрительные',
+      title: 'Suspicious',
       value: stats.suspicious,
-      icon: '⚠️',
+      percentage: stats.total > 0 ? ((stats.suspicious / stats.total) * 100).toFixed(1) : 0,
       color: 'warning'
     },
     {
-      title: 'Фродовые',
+      title: 'Fraudulent',
       value: stats.fraud,
-      icon: '🚨',
+      percentage: stats.total > 0 ? ((stats.fraud / stats.total) * 100).toFixed(1) : 0,
       color: 'danger'
     },
     {
-      title: 'Заблокировано IP',
+      title: 'Blocked IPs',
       value: stats.blockedIps,
-      icon: '🚫',
+      subtitle: 'Active blocks',
       color: 'info'
     }
   ];
 
-  const fraudRate = stats.total > 0 
-    ? ((stats.fraud / stats.total) * 100).toFixed(1)
-    : 0;
-
   return (
-    <div className={styles.container}>
+    <div className={styles.grid}>
       {cards.map((card, index) => (
         <div key={index} className={`${styles.card} ${styles[card.color]}`}>
-          <div className={styles.icon}>{card.icon}</div>
-          <div className={styles.content}>
-            <div className={styles.title}>{card.title}</div>
-            <div className={styles.value}>{card.value.toLocaleString('ru')}</div>
-            {card.title === 'Фродовые' && (
-              <div className={styles.rate}>{fraudRate}% от всего трафика</div>
+          <div className={styles.cardHeader}>
+            <span className={styles.title}>{card.title}</span>
+            {card.change && (
+              <span className={`${styles.change} ${styles[card.trend]}`}>
+                {card.change}
+              </span>
+            )}
+          </div>
+          <div className={styles.cardBody}>
+            <div className={styles.value}>{card.value.toLocaleString('en-US')}</div>
+            {card.percentage && (
+              <div className={styles.percentage}>{card.percentage}% of total</div>
+            )}
+            {card.subtitle && (
+              <div className={styles.subtitle}>{card.subtitle}</div>
             )}
           </div>
         </div>
