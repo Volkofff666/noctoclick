@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { Link2, CheckCircle, RefreshCw, Info } from 'lucide-react';
 import styles from './YandexConnect.module.css';
 
 function YandexConnect() {
@@ -7,21 +8,23 @@ function YandexConnect() {
 
   const handleConnect = () => {
     // TODO: Implement Yandex OAuth
-    alert('Yandex OAuth интеграция будет реализована в следующей версии');
+    alert('Интеграция с Яндекс OAuth будет реализована в следующей версии');
   };
 
   const handleSync = () => {
-    alert('Синхронизация с Yandex.Direct...');
+    alert('Синхронизация с Яндекс.Директ...');
   };
 
   return (
     <div className={styles.yandex}>
       <div className={styles.hero}>
-        <div className={styles.heroIcon}>🔗</div>
+        <div className={styles.heroIcon}>
+          <Link2 size={64} strokeWidth={1.5} />
+        </div>
         <h2>Интеграция с Яндекс.Директ</h2>
         <p>
           Подключите NoctoClick к вашим рекламным кампаниям в Яндекс.Директ
-          для автоматической блокировки фродовых IP-адресов.
+          для автоматической блокировки мошеннических IP-адресов.
         </p>
       </div>
 
@@ -47,21 +50,24 @@ function YandexConnect() {
               <div className={styles.stepNumber}>3</div>
               <div className={styles.stepContent}>
                 <h4>Автоматическая блокировка</h4>
-                <p>Система будет автоматически блокировать фродовые IP через Метрику</p>
+                <p>Система будет автоматически блокировать мошеннические IP через Яндекс.Метрику</p>
               </div>
             </div>
           </div>
 
           <div className={styles.actions}>
             <button onClick={handleConnect} className={styles.btnPrimary}>
-              🔐 Подключить Яндекс.Директ
+              <Link2 size={18} />
+              Подключить Яндекс.Директ
             </button>
           </div>
         </div>
       ) : (
         <div className={styles.section}>
           <div className={styles.connected}>
-            <div className={styles.connectedIcon}>✅</div>
+            <div className={styles.connectedIcon}>
+              <CheckCircle size={48} strokeWidth={2} />
+            </div>
             <div>
               <h3>Аккаунт подключен</h3>
               <p>Ваш аккаунт успешно подключен к NoctoClick</p>
@@ -75,14 +81,18 @@ function YandexConnect() {
 
           <div className={styles.actions}>
             <button onClick={handleSync} className={styles.btnPrimary}>
-              🔄 Синхронизировать сейчас
+              <RefreshCw size={18} />
+              Синхронизировать сейчас
             </button>
           </div>
         </div>
       )}
 
       <div className={styles.info}>
-        <h3>ℹ️ Информация</h3>
+        <h3>
+          <Info size={20} />
+          Важная информация
+        </h3>
         <ul>
           <li>Яндекс.Директ ограничивает блокировку до 25 IP-адресов на кампанию</li>
           <li>Блокировка осуществляется через Яндекс.Метрику с корректировкой ставок -100%</li>
