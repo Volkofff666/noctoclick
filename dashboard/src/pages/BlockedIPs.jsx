@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { Download, Plus, Search, X } from 'lucide-react';
 import { blockedAPI } from '../utils/api';
 import styles from './BlockedIPs.module.css';
 
@@ -29,14 +30,14 @@ function BlockedIPs() {
   };
 
   const handleUnblock = async (ip) => {
-    if (!confirm(`Are you sure you want to unblock ${ip}?`)) return;
+    if (!confirm(`Вы уверены, что хотите разблокировать ${ip}?`)) return;
 
     try {
       await blockedAPI.unblockIP(siteId, ip);
       await loadBlocked();
     } catch (err) {
       console.error('Failed to unblock IP:', err);
-      alert('Failed to unblock IP. Please try again.');
+      alert('Ошибка разблокировки. Попробуйте снова.');
     }
   };
 
@@ -46,7 +47,7 @@ function BlockedIPs() {
     try {
       await blockedAPI.blockIP(siteId, {
         ip: newIP,
-        reason: newReason || 'Manual block',
+        reason: newReason || 'Ручная блокировка',
         autoDuration: 168
       });
       
@@ -56,7 +57,7 @@ function BlockedIPs() {
       await loadBlocked();
     } catch (err) {
       console.error('Failed to block IP:', err);
-      alert('Failed to block IP. Please try again.');
+      alert('Ошибка блокировки. Попробуйте снова.');
     }
   };
 
@@ -66,10 +67,10 @@ function BlockedIPs() {
       const text = data.ips.join('\n');
       
       await navigator.clipboard.writeText(text);
-      alert(`${data.ips.length} IP addresses copied to clipboard`);
+      alert(`Скопировано ${data.ips.length} IP-адресов в буфер обмена`);
     } catch (err) {
       console.error('Failed to export:', err);
-      alert('Failed to export IPs');
+      alert('Ошибка экспорта');
     }
   };
 
@@ -80,27 +81,6 @@ function BlockedIPs() {
     return true;
   });
 
-  const ShieldIcon = () => (
-    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-      <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path>
-    </svg>
-  );
-
-  const DownloadIcon = () => (
-    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-      <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
-      <polyline points="7 10 12 15 17 10"></polyline>
-      <line x1="12" y1="15" x2="12" y2="3"></line>
-    </svg>
-  );
-
-  const PlusIcon = () => (
-    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-      <line x1="12" y1="5" x2="12" y2="19"></line>
-      <line x1="5" y1="12" x2="19" y2="12"></line>
-    </svg>
-  );
-
   return (
     <div className={styles.blocked}>
       <div className={styles.header}>
@@ -108,26 +88,26 @@ function BlockedIPs() {
           <div className={styles.stats}>
             <div className={styles.statItem}>
               <span className={styles.statValue}>{blocked.length}</span>
-              <span className={styles.statLabel}>Total Blocked</span>
+              <span className={styles.statLabel}>Всего заблокировано</span>
             </div>
             <div className={styles.statItem}>
               <span className={styles.statValue}>{blocked.filter(b => b.auto_blocked).length}</span>
-              <span className={styles.statLabel}>Auto-blocked</span>
+              <span className={styles.statLabel}>Автоматически</span>
             </div>
             <div className={styles.statItem}>
               <span className={styles.statValue}>{blocked.filter(b => !b.auto_blocked).length}</span>
-              <span className={styles.statLabel}>Manual</span>
+              <span className={styles.statLabel}>Вручную</span>
             </div>
           </div>
         </div>
         <div className={styles.headerActions}>
           <button onClick={handleExport} className={styles.btnSecondary}>
-            <DownloadIcon />
-            Export for Yandex
+            <Download size={16} />
+            Экспорт для Яндекса
           </button>
           <button onClick={() => setShowAddModal(true)} className={styles.btnPrimary}>
-            <PlusIcon />
-            Add IP
+            <Plus size={16} />
+            Добавить IP
           </button>
         </div>
       </div>
@@ -138,48 +118,51 @@ function BlockedIPs() {
             className={`${styles.filterBtn} ${filterType === 'all' ? styles.active : ''}`}
             onClick={() => setFilterType('all')}
           >
-            All
+            Все
           </button>
           <button 
             className={`${styles.filterBtn} ${filterType === 'auto' ? styles.active : ''}`}
             onClick={() => setFilterType('auto')}
           >
-            Auto-blocked
+            Автоматические
           </button>
           <button 
             className={`${styles.filterBtn} ${filterType === 'manual' ? styles.active : ''}`}
             onClick={() => setFilterType('manual')}
           >
-            Manual
+            Ручные
           </button>
         </div>
-        <input
-          type="text"
-          placeholder="Search IP address..."
-          className={styles.search}
-          value={searchQuery}
-          onChange={(e) => setSearchQuery(e.target.value)}
-        />
+        <div className={styles.searchBox}>
+          <Search size={16} className={styles.searchIcon} />
+          <input
+            type="text"
+            placeholder="Поиск по IP-адресу..."
+            className={styles.search}
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+          />
+        </div>
       </div>
 
       {loading ? (
-        <div className={styles.loading}>Loading blocked IPs...</div>
+        <div className={styles.loading}>Загрузка заблокированных IP...</div>
       ) : filteredBlocked.length === 0 ? (
         <div className={styles.empty}>
-          <ShieldIcon />
-          <p>No blocked IP addresses{searchQuery ? ' matching your search' : ''}</p>
+          <Shield size={48} />
+          <p>Нет заблокированных IP-адресов{searchQuery ? ' по вашему запросу' : ''}</p>
         </div>
       ) : (
         <div className={styles.table}>
           <table>
             <thead>
               <tr>
-                <th>IP Address</th>
-                <th>Reason</th>
-                <th>Type</th>
-                <th>Blocked At</th>
-                <th>Auto-unblock</th>
-                <th>Actions</th>
+                <th>IP адрес</th>
+                <th>Причина</th>
+                <th>Тип</th>
+                <th>Заблокирован</th>
+                <th>Авто-разблокировка</th>
+                <th>Действия</th>
               </tr>
             </thead>
             <tbody>
@@ -189,19 +172,19 @@ function BlockedIPs() {
                   <td className={styles.reason}>{item.reason}</td>
                   <td>
                     <span className={`${styles.badge} ${item.auto_blocked ? styles.badgeAuto : styles.badgeManual}`}>
-                      {item.auto_blocked ? 'Automatic' : 'Manual'}
+                      {item.auto_blocked ? 'Авто' : 'Ручной'}
                     </span>
                   </td>
-                  <td className={styles.date}>{new Date(item.blocked_at).toLocaleString('en-US')}</td>
+                  <td className={styles.date}>{new Date(item.blocked_at).toLocaleString('ru')}</td>
                   <td className={styles.date}>
-                    {item.auto_unblock_at ? new Date(item.auto_unblock_at).toLocaleString('en-US') : '—'}
+                    {item.auto_unblock_at ? new Date(item.auto_unblock_at).toLocaleString('ru') : '—'}
                   </td>
                   <td>
                     <button 
                       onClick={() => handleUnblock(item.ip_address)}
                       className={styles.btnUnblock}
                     >
-                      Unblock
+                      Разблокировать
                     </button>
                   </td>
                 </tr>
@@ -215,12 +198,14 @@ function BlockedIPs() {
         <div className={styles.modal} onClick={() => setShowAddModal(false)}>
           <div className={styles.modalContent} onClick={(e) => e.stopPropagation()}>
             <div className={styles.modalHeader}>
-              <h3>Block IP Address</h3>
-              <button onClick={() => setShowAddModal(false)} className={styles.modalClose}>×</button>
+              <h3>Заблокировать IP-адрес</h3>
+              <button onClick={() => setShowAddModal(false)} className={styles.modalClose}>
+                <X size={20} />
+              </button>
             </div>
             <form onSubmit={handleAddIP}>
               <div className={styles.formGroup}>
-                <label>IP Address</label>
+                <label>IP адрес</label>
                 <input
                   type="text"
                   placeholder="192.168.1.1"
@@ -229,12 +214,12 @@ function BlockedIPs() {
                   required
                   pattern="^(?:[0-9]{1,3}\.){3}[0-9]{1,3}$"
                 />
-                <small>Enter a valid IPv4 address</small>
+                <small>Введите корректный IPv4 адрес</small>
               </div>
               <div className={styles.formGroup}>
-                <label>Reason (optional)</label>
+                <label>Причина (необязательно)</label>
                 <textarea
-                  placeholder="Reason for blocking this IP address"
+                  placeholder="Причина блокировки IP-адреса"
                   value={newReason}
                   onChange={(e) => setNewReason(e.target.value)}
                   rows={3}
@@ -242,10 +227,10 @@ function BlockedIPs() {
               </div>
               <div className={styles.modalActions}>
                 <button type="button" onClick={() => setShowAddModal(false)} className={styles.btnCancel}>
-                  Cancel
+                  Отмена
                 </button>
                 <button type="submit" className={styles.btnSubmit}>
-                  Block IP
+                  Заблокировать
                 </button>
               </div>
             </form>

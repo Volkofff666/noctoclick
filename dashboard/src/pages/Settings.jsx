@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { Check } from 'lucide-react';
 import styles from './Settings.module.css';
 
 function Settings() {
@@ -27,25 +28,19 @@ function Settings() {
     }, 500);
   };
 
-  const CheckIcon = () => (
-    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3">
-      <polyline points="20 6 9 17 4 12"></polyline>
-    </svg>
-  );
-
   return (
     <div className={styles.settings}>
       <div className={styles.section}>
         <div className={styles.sectionHeader}>
-          <h2>Fraud Detection Thresholds</h2>
-          <p>Configure sensitivity and rules for detecting fraudulent activity</p>
+          <h2>Пороги детекции фрода</h2>
+          <p>Настройте чувствительность и правила обнаружения мошеннической активности</p>
         </div>
         
         <form onSubmit={handleSave}>
           <div className={styles.formGrid}>
             <div className={styles.formGroup}>
               <label>
-                Maximum Clicks Per Hour
+                Максимум кликов в час
                 <span className={styles.badge}>{settings.maxClicksPerHour}</span>
               </label>
               <input
@@ -56,13 +51,13 @@ function Settings() {
                 max="20"
                 className={styles.slider}
               />
-              <small>Number of clicks from single IP per hour before flagging as suspicious</small>
+              <small>Количество кликов с одного IP в час перед пометкой как подозрительный</small>
             </div>
 
             <div className={styles.formGroup}>
               <label>
-                Minimum Time on Site (seconds)
-                <span className={styles.badge}>{settings.minTimeOnSite}s</span>
+                Минимальное время на сайте (сек)
+                <span className={styles.badge}>{settings.minTimeOnSite}с</span>
               </label>
               <input
                 type="range"
@@ -72,12 +67,12 @@ function Settings() {
                 max="30"
                 className={styles.slider}
               />
-              <small>Minimum time for legitimate visit detection</small>
+              <small>Минимальное время для определения легитимного визита</small>
             </div>
 
             <div className={styles.formGroup}>
               <label>
-                Fraud Score Threshold
+                Порог Fraud Score
                 <span className={`${styles.badge} ${settings.fraudScoreThreshold >= 70 ? styles.badgeDanger : styles.badgeWarning}`}>
                   {settings.fraudScoreThreshold}
                 </span>
@@ -90,13 +85,13 @@ function Settings() {
                 max="100"
                 className={styles.slider}
               />
-              <small>Threshold score for automatic IP blocking</small>
+              <small>Пороговое значение для автоматической блокировки IP</small>
             </div>
 
             <div className={styles.formGroup}>
               <label>
-                Auto-block Duration (hours)
-                <span className={styles.badge}>{settings.blockDuration}h</span>
+                Длительность авто-блокировки (часов)
+                <span className={styles.badge}>{settings.blockDuration}ч</span>
               </label>
               <input
                 type="range"
@@ -107,13 +102,13 @@ function Settings() {
                 step="24"
                 className={styles.slider}
               />
-              <small>How long IPs remain blocked ({Math.floor(settings.blockDuration / 24)} days)</small>
+              <small>Время блокировки IP-адресов ({Math.floor(settings.blockDuration / 24)} дней)</small>
             </div>
 
             <div className={styles.formGroup}>
               <label>
-                Sync Interval (minutes)
-                <span className={styles.badge}>{settings.syncInterval}m</span>
+                Интервал синхронизации (минут)
+                <span className={styles.badge}>{settings.syncInterval}м</span>
               </label>
               <input
                 type="range"
@@ -124,7 +119,7 @@ function Settings() {
                 step="5"
                 className={styles.slider}
               />
-              <small>Frequency of synchronization with Yandex Direct</small>
+              <small>Частота синхронизации с Яндекс.Директ</small>
             </div>
           </div>
 
@@ -142,8 +137,8 @@ function Settings() {
                   <span className={styles.toggleSlider}></span>
                 </div>
                 <div className={styles.toggleText}>
-                  <span className={styles.toggleTitle}>Automatic IP Blocking</span>
-                  <span className={styles.toggleDesc}>Enable automatic blocking of fraudulent IP addresses</span>
+                  <span className={styles.toggleTitle}>Автоматическая блокировка IP</span>
+                  <span className={styles.toggleDesc}>Включить автоматическую блокировку мошеннических IP-адресов</span>
                 </div>
               </label>
             </div>
@@ -152,12 +147,12 @@ function Settings() {
           <div className={styles.actions}>
             {saved && (
               <span className={styles.savedMessage}>
-                <CheckIcon />
-                Settings saved successfully
+                <Check size={16} />
+                Настройки успешно сохранены
               </span>
             )}
             <button type="submit" className={styles.btnPrimary} disabled={saving}>
-              {saving ? 'Saving...' : 'Save Settings'}
+              {saving ? 'Сохранение...' : 'Сохранить настройки'}
             </button>
           </div>
         </form>
@@ -165,13 +160,13 @@ function Settings() {
 
       <div className={styles.section}>
         <div className={styles.sectionHeader}>
-          <h2>System Information</h2>
-          <p>Current system status and configuration</p>
+          <h2>Информация о системе</h2>
+          <p>Текущий статус и конфигурация системы</p>
         </div>
         
         <div className={styles.infoGrid}>
           <div className={styles.infoCard}>
-            <div className={styles.infoLabel}>Version</div>
+            <div className={styles.infoLabel}>Версия</div>
             <div className={styles.infoValue}>1.0.0</div>
           </div>
           <div className={styles.infoCard}>
@@ -181,16 +176,16 @@ function Settings() {
             </div>
           </div>
           <div className={styles.infoCard}>
-            <div className={styles.infoLabel}>Status</div>
+            <div className={styles.infoLabel}>Статус</div>
             <div className={styles.infoValue}>
               <span className={styles.statusBadge}>
                 <span className={styles.statusDot}></span>
-                Active
+                Активна
               </span>
             </div>
           </div>
           <div className={styles.infoCard}>
-            <div className={styles.infoLabel}>Environment</div>
+            <div className={styles.infoLabel}>Окружение</div>
             <div className={styles.infoValue}>
               {import.meta.env.MODE === 'production' ? 'Production' : 'Development'}
             </div>
@@ -200,24 +195,24 @@ function Settings() {
 
       <div className={styles.section}>
         <div className={styles.sectionHeader}>
-          <h2>Danger Zone</h2>
-          <p>Irreversible and destructive actions</p>
+          <h2>Опасная зона</h2>
+          <p>Необратимые и деструктивные действия</p>
         </div>
         
         <div className={styles.dangerZone}>
           <div className={styles.dangerItem}>
             <div>
-              <div className={styles.dangerTitle}>Clear All Blocked IPs</div>
-              <div className={styles.dangerDesc}>Remove all IP addresses from the block list</div>
+              <div className={styles.dangerTitle}>Очистить все заблокированные IP</div>
+              <div className={styles.dangerDesc}>Удалить все IP-адреса из списка блокировок</div>
             </div>
-            <button className={styles.btnDanger}>Clear All</button>
+            <button className={styles.btnDanger}>Очистить всё</button>
           </div>
           <div className={styles.dangerItem}>
             <div>
-              <div className={styles.dangerTitle}>Reset Statistics</div>
-              <div className={styles.dangerDesc}>Delete all event data and statistics</div>
+              <div className={styles.dangerTitle}>Сбросить статистику</div>
+              <div className={styles.dangerDesc}>Удалить все данные событий и статистику</div>
             </div>
-            <button className={styles.btnDanger}>Reset Data</button>
+            <button className={styles.btnDanger}>Сбросить данные</button>
           </div>
         </div>
       </div>

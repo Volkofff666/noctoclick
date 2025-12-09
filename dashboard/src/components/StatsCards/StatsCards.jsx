@@ -5,34 +5,34 @@ function StatsCards({ stats }) {
 
   const cards = [
     {
-      title: 'Total Events',
+      title: 'Всего событий',
       value: stats.total,
       change: '+12.5%',
       trend: 'up',
       color: 'primary'
     },
     {
-      title: 'Legitimate',
+      title: 'Легитимные',
       value: stats.legitimate,
       percentage: stats.total > 0 ? ((stats.legitimate / stats.total) * 100).toFixed(1) : 0,
       color: 'success'
     },
     {
-      title: 'Suspicious',
+      title: 'Подозрительные',
       value: stats.suspicious,
       percentage: stats.total > 0 ? ((stats.suspicious / stats.total) * 100).toFixed(1) : 0,
       color: 'warning'
     },
     {
-      title: 'Fraudulent',
+      title: 'Мошеннические',
       value: stats.fraud,
       percentage: stats.total > 0 ? ((stats.fraud / stats.total) * 100).toFixed(1) : 0,
       color: 'danger'
     },
     {
-      title: 'Blocked IPs',
+      title: 'Заблокировано IP',
       value: stats.blockedIps,
-      subtitle: 'Active blocks',
+      subtitle: 'Активные блокировки',
       color: 'info'
     }
   ];
@@ -50,9 +50,9 @@ function StatsCards({ stats }) {
             )}
           </div>
           <div className={styles.cardBody}>
-            <div className={styles.value}>{card.value.toLocaleString('en-US')}</div>
+            <div className={styles.value}>{card.value.toLocaleString('ru')}</div>
             {card.percentage && (
-              <div className={styles.percentage}>{card.percentage}% of total</div>
+              <div className={styles.percentage}>{card.percentage}% от общего</div>
             )}
             {card.subtitle && (
               <div className={styles.subtitle}>{card.subtitle}</div>
