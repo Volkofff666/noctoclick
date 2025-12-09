@@ -1,4 +1,5 @@
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
+import { ToastProvider } from './components/Toast/ToastContainer';
 import Layout from './components/Layout/Layout';
 import Dashboard from './pages/Dashboard';
 import BlockedIPs from './pages/BlockedIPs';
@@ -34,39 +35,41 @@ function RedirectIfAuth({ children }) {
 
 function App() {
   return (
-    <Router>
-      <Routes>
-        {/* Публичные роуты */}
-        <Route path="/login" element={
-          <RedirectIfAuth>
-            <Login />
-          </RedirectIfAuth>
-        } />
-        <Route path="/register" element={
-          <RedirectIfAuth>
-            <Register />
-          </RedirectIfAuth>
-        } />
+    <ToastProvider>
+      <Router>
+        <Routes>
+          {/* Публичные роуты */}
+          <Route path="/login" element={
+            <RedirectIfAuth>
+              <Login />
+            </RedirectIfAuth>
+          } />
+          <Route path="/register" element={
+            <RedirectIfAuth>
+              <Register />
+            </RedirectIfAuth>
+          } />
 
-        {/* Защищённые роуты */}
-        <Route path="/" element={
-          <RequireAuth>
-            <Layout />
-          </RequireAuth>
-        }>
-          <Route index element={<Navigate to="/sites" replace />} />
-          <Route path="sites" element={<Sites />} />
-          <Route path="dashboard" element={<Dashboard />} />
-          <Route path="blocked" element={<BlockedIPs />} />
-          <Route path="settings" element={<Settings />} />
-          <Route path="yandex" element={<YandexConnect />} />
-          <Route path="profile" element={<Profile />} />
-        </Route>
+          {/* Защищённые роуты */}
+          <Route path="/" element={
+            <RequireAuth>
+              <Layout />
+            </RequireAuth>
+          }>
+            <Route index element={<Navigate to="/sites" replace />} />
+            <Route path="sites" element={<Sites />} />
+            <Route path="dashboard" element={<Dashboard />} />
+            <Route path="blocked" element={<BlockedIPs />} />
+            <Route path="settings" element={<Settings />} />
+            <Route path="yandex" element={<YandexConnect />} />
+            <Route path="profile" element={<Profile />} />
+          </Route>
 
-        {/* 404 */}
-        <Route path="*" element={<Navigate to="/" replace />} />
-      </Routes>
-    </Router>
+          {/* 404 */}
+          <Route path="*" element={<Navigate to="/" replace />} />
+        </Routes>
+      </Router>
+    </ToastProvider>
   );
 }
 
