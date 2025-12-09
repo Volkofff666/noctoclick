@@ -1,4 +1,8 @@
 import axios from 'axios';
+import { mockAuthAPI, mockSitesAPI, mockStatsAPI, mockBlockedAPI } from './mockApi';
+
+// 🔧 НАСТРОЙКА: переключатель между реальным API и mock
+const USE_MOCK_API = true; // Поставь false когда backend будет готов
 
 const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001';
 
@@ -57,7 +61,7 @@ api.interceptors.response.use(
 );
 
 // Auth API
-export const authAPI = {
+export const authAPI = USE_MOCK_API ? mockAuthAPI : {
   register: async (data) => {
     const response = await api.post('/api/auth/register', data);
     return response.data;
@@ -94,7 +98,7 @@ export const authAPI = {
 };
 
 // Sites API
-export const sitesAPI = {
+export const sitesAPI = USE_MOCK_API ? mockSitesAPI : {
   getAll: async () => {
     const response = await api.get('/api/sites');
     return response.data;
@@ -136,8 +140,8 @@ export const sitesAPI = {
   }
 };
 
-// Stats API (обновляем для работы с siteId)
-export const statsAPI = {
+// Stats API
+export const statsAPI = USE_MOCK_API ? mockStatsAPI : {
   getSiteStats: async (siteId, period = '24h') => {
     const response = await api.get(`/api/sites/${siteId}/stats`, { params: { period } });
     return response.data;
@@ -149,8 +153,8 @@ export const statsAPI = {
   }
 };
 
-// Blocked IPs API (обновляем)
-export const blockedAPI = {
+// Blocked IPs API
+export const blockedAPI = USE_MOCK_API ? mockBlockedAPI : {
   getBlocked: async (siteId) => {
     const response = await api.get(`/api/blocked/${siteId}`);
     return response.data;
