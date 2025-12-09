@@ -1,83 +1,164 @@
-/**
- * API Client for NoctoClick
- */
-
 import axios from 'axios';
 
-const API_URL = import.meta.env.VITE_API_URL || '/api';
+const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001';
 
+// Создаём axios instance
 const api = axios.create({
-  baseURL: API_URL,
-  timeout: 30000,
+  baseURL: API_BASE_URL,
   headers: {
     'Content-Type': 'application/json'
   }
 });
 
-// Request interceptor
+// Interceptor для добавления access token
 api.interceptors.request.use(
   (config) => {
-    // Add auth token if exists
-    const token = localStorage.getItem('token');
+    const token = localStorage.getItem('accessToken');
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
     }
     return config;
   },
-  (error) => {
-    return Promise.reject(error);
-  }
+  (error) => Promise.reject(error)
 );
 
-// Response interceptor
+// Interceptor для обновления token
 api.interceptors.response.use(
-  (response) => response.data,
-  (error) => {
-    if (error.response?.status === 401) {
-      // Unauthorized - clear token and redirect to login
-      localStorage.removeItem('token');
-      window.location.href = '/login';
+  (response) => response,
+  async (error) => {
+    const originalRequest = error.config;
+
+    // Если token истёк
+    if (error.response?.status === 401 && error.response?.data?.code === 'TOKEN_EXPIRED' && !originalRequest._retry) {
+      originalRequest._retry = true;
+
+      try {
+        const refreshToken = localStorage.getItem('refreshToken');
+        const response = await axios.post(`${API_BASE_URL}/api/auth/refresh`, { refreshToken });
+        
+        const { accessToken } = response.data;
+        localStorage.setItem('accessToken', accessToken);
+
+        // Повторяем запрос
+        originalRequest.headers.Authorization = `Bearer ${accessToken}`;
+        return api(originalRequest);
+      } catch (refreshError) {
+        // Refresh token тоже истёк - выходим
+        localStorage.removeItem('accessToken');
+        localStorage.removeItem('refreshToken');
+        localStorage.removeItem('user');
+        window.location.href = '/login';
+        return Promise.reject(refreshError);
+      }
     }
+
     return Promise.reject(error);
   }
 );
 
-// API methods
-export const statsAPI = {
-  getSiteStats: (siteId, period = '24h') => 
-    api.get(`/stats/${siteId}`, { params: { period } }),
+// Auth API
+export const authAPI = {
+  register: async (data) => {
+    const response = await api.post('/api/auth/register', data);
+    return response.data;
+  },
   
-  getRecentEvents: (siteId, limit = 50) =>
-    api.get(`/stats/${siteId}/recent`, { params: { limit } })
+  login: async (email, password) => {
+    const response = await api.post('/api/auth/login', { email, password });
+    return response.data;
+  },
+  
+  logout: async () => {
+    const refreshToken = localStorage.getItem('refreshToken');
+    await api.post('/api/auth/logout', { refreshToken });
+    localStorage.removeItem('accessToken');
+    localStorage.removeItem('refreshToken');
+    localStorage.removeItem('user');
+  },
+  
+  getMe: async () => {
+    const response = await api.get('/api/auth/me');
+    return response.data;
+  }
 };
 
+// Sites API
 export const sitesAPI = {
-  getAll: () => api.get('/sites'),
-  getById: (id) => api.get(`/sites/${id}`),
-  create: (data) => api.post('/sites', data),
-  update: (id, data) => api.put(`/sites/${id}`, data),
-  delete: (id) => api.delete(`/sites/${id}`)
+  getAll: async () => {
+    const response = await api.get('/api/sites');
+    return response.data;
+  },
+  
+  getById: async (siteId) => {
+    const response = await api.get(`/api/sites/${siteId}`);
+    return response.data;
+  },
+  
+  create: async (data) => {
+    const response = await api.post('/api/sites', data);
+    return response.data;
+  },
+  
+  update: async (siteId, data) => {
+    const response = await api.put(`/api/sites/${siteId}`, data);
+    return response.data;
+  },
+  
+  delete: async (siteId) => {
+    const response = await api.delete(`/api/sites/${siteId}`);
+    return response.data;
+  },
+  
+  regenerateKey: async (siteId) => {
+    const response = await api.post(`/api/sites/${siteId}/regenerate-key`);
+    return response.data;
+  },
+  
+  test: async (siteId) => {
+    const response = await api.post(`/api/sites/${siteId}/test`);
+    return response.data;
+  },
+  
+  getStats: async (siteId, period = '24h') => {
+    const response = await api.get(`/api/sites/${siteId}/stats`, { params: { period } });
+    return response.data;
+  }
 };
 
+// Stats API (обновляем для работы с siteId)
+export const statsAPI = {
+  getSiteStats: async (siteId, period = '24h') => {
+    const response = await api.get(`/api/sites/${siteId}/stats`, { params: { period } });
+    return response.data;
+  },
+  
+  getEvents: async (siteId, params = {}) => {
+    const response = await api.get(`/api/stats/${siteId}/events`, { params });
+    return response.data;
+  }
+};
+
+// Blocked IPs API (обновляем)
 export const blockedAPI = {
-  getBlocked: (siteId, active = true) =>
-    api.get(`/blocked/${siteId}`, { params: { active } }),
+  getBlocked: async (siteId) => {
+    const response = await api.get(`/api/blocked/${siteId}`);
+    return response.data;
+  },
   
-  blockIP: (siteId, data) =>
-    api.post(`/blocked/${siteId}`, data),
+  blockIP: async (siteId, data) => {
+    const response = await api.post(`/api/blocked/${siteId}`, data);
+    return response.data;
+  },
   
-  unblockIP: (siteId, ip) =>
-    api.delete(`/blocked/${siteId}/${ip}`),
+  unblockIP: async (siteId, ip) => {
+    const response = await api.delete(`/api/blocked/${siteId}/${ip}`);
+    return response.data;
+  },
   
-  exportForYandex: (siteId) =>
-    api.get(`/blocked/${siteId}/export`)
-};
-
-export const yandexAPI = {
-  getAuthUrl: () => api.get('/yandex/auth'),
-  handleCallback: (code) => api.get('/yandex/callback', { params: { code } }),
-  getCampaigns: () => api.get('/yandex/campaigns'),
-  syncBlocking: (siteId) => api.post('/yandex/sync', { siteId })
+  exportForYandex: async (siteId) => {
+    const response = await api.get(`/api/blocked/${siteId}/export/yandex`);
+    return response.data;
+  }
 };
 
 export default api;
