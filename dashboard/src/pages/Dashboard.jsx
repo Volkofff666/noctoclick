@@ -4,6 +4,9 @@ import { BarChart3, TrendingUp, Shield, AlertTriangle, Activity } from 'lucide-r
 import { sitesAPI, statsAPI } from '../utils/api';
 import { useToast } from '../components/Toast/ToastContainer';
 import EmptyState from '../components/EmptyState/EmptyState';
+import LineChart from '../components/Charts/LineChart';
+import PieChart from '../components/Charts/PieChart';
+import CustomBarChart from '../components/Charts/BarChart';
 import styles from './Dashboard.module.css';
 
 function Dashboard() {
@@ -11,6 +14,8 @@ function Dashboard() {
   const toast = useToast();
   const [stats, setStats] = useState(null);
   const [events, setEvents] = useState([]);
+  const [timeSeriesData, setTimeSeriesData] = useState([]);
+  const [hourlyData, setHourlyData] = useState([]);
   const [loading, setLoading] = useState(true);
   const [period, setPeriod] = useState('24h');
   const siteId = searchParams.get('site');
@@ -24,12 +29,16 @@ function Dashboard() {
   const loadData = async () => {
     try {
       setLoading(true);
-      const [statsData, eventsData] = await Promise.all([
+      const [statsData, eventsData, timeSeriesResult, hourlyResult] = await Promise.all([
         sitesAPI.getStats(siteId, period),
-        statsAPI.getEvents(siteId, { limit: 10 })
+        statsAPI.getEvents(siteId, { limit: 10 }),
+        statsAPI.getTimeSeries(siteId, period),
+        statsAPI.getHourlyData(siteId)
       ]);
       setStats(statsData.stats);
       setEvents(eventsData.events || []);
+      setTimeSeriesData(timeSeriesResult.data || []);
+      setHourlyData(hourlyResult.data || []);
     } catch (err) {
       console.error('Load dashboard data error:', err);
       toast.error('Ошибка загрузки данных');
@@ -183,6 +192,30 @@ function Dashboard() {
               {((stats.fraud / stats.total) * 100).toFixed(1)}%
             </div>
           </div>
+        </div>
+      </div>
+
+      {/* Графики */}
+      <div className={styles.chartsGrid}>
+        <div className={styles.chartWide}>
+          <LineChart 
+            data={timeSeriesData} 
+            title="Динамика событий за 24 часа"
+          />
+        </div>
+        
+        <div className={styles.chartHalf}>
+          <PieChart 
+            data={stats} 
+            title="Распределение событий"
+          />
+        </div>
+        
+        <div className={styles.chartHalf}>
+          <CustomBarChart 
+            data={hourlyData} 
+            title="Клики по часам"
+          />
         </div>
       </div>
 

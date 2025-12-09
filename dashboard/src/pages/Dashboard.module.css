@@ -117,6 +117,21 @@
   font-weight: 500;
 }
 
+/* Графики */
+.chartsGrid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: var(--spacing-lg);
+}
+
+.chartWide {
+  grid-column: 1 / -1;
+}
+
+.chartHalf {
+  grid-column: span 1;
+}
+
 .section {
   background: var(--bg-primary);
   padding: var(--spacing-xl);
@@ -204,6 +219,17 @@
 .score {
   font-weight: 600;
   color: var(--text-primary);
+}
+
+@media (max-width: 1200px) {
+  .chartsGrid {
+    grid-template-columns: 1fr;
+  }
+  
+  .chartWide,
+  .chartHalf {
+    grid-column: span 1;
+  }
 }
 
 @media (max-width: 768px) {
