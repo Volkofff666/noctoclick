@@ -1,9 +1,11 @@
 import { useState, useEffect } from 'react';
 import { User, Mail, Building, Phone, MessageCircle, Save, Lock } from 'lucide-react';
 import { authAPI } from '../utils/api';
+import { useToast } from '../components/Toast/ToastContainer';
 import styles from './Profile.module.css';
 
 function Profile() {
+  const toast = useToast();
   const [profile, setProfile] = useState({
     email: '',
     fullName: '',
@@ -18,8 +20,6 @@ function Profile() {
   });
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
-  const [error, setError] = useState('');
-  const [success, setSuccess] = useState('');
   const [showPasswordForm, setShowPasswordForm] = useState(false);
 
   useEffect(() => {
@@ -39,7 +39,7 @@ function Profile() {
       });
     } catch (err) {
       console.error('Load profile error:', err);
-      setError('Ошибка загрузки профиля');
+      toast.error('Ошибка загрузки профиля');
     } finally {
       setLoading(false);
     }
@@ -47,8 +47,6 @@ function Profile() {
 
   const handleSaveProfile = async (e) => {
     e.preventDefault();
-    setError('');
-    setSuccess('');
     setSaving(true);
 
     try {
@@ -58,11 +56,10 @@ function Profile() {
         phone: profile.phone,
         telegram: profile.telegram
       });
-      setSuccess('Профиль успешно обновлён');
-      setTimeout(() => setSuccess(''), 3000);
+      toast.success('Профиль успешно обновлён');
     } catch (err) {
       console.error('Save profile error:', err);
-      setError(err.response?.data?.error || 'Ошибка сохранения');
+      toast.error(err.response?.data?.error || 'Ошибка сохранения');
     } finally {
       setSaving(false);
     }
@@ -70,16 +67,14 @@ function Profile() {
 
   const handleChangePassword = async (e) => {
     e.preventDefault();
-    setError('');
-    setSuccess('');
 
     if (passwords.newPassword.length < 6) {
-      setError('Новый пароль должен быть не менее 6 символов');
+      toast.error('Новый пароль должен быть не менее 6 символов');
       return;
     }
 
     if (passwords.newPassword !== passwords.confirmPassword) {
-      setError('Пароли не совпадают');
+      toast.error('Пароли не совпадают');
       return;
     }
 
@@ -90,13 +85,12 @@ function Profile() {
         currentPassword: passwords.currentPassword,
         newPassword: passwords.newPassword
       });
-      setSuccess('Пароль успешно изменён');
+      toast.success('Пароль успешно изменён');
       setPasswords({ currentPassword: '', newPassword: '', confirmPassword: '' });
       setShowPasswordForm(false);
-      setTimeout(() => setSuccess(''), 3000);
     } catch (err) {
       console.error('Change password error:', err);
-      setError(err.response?.data?.error || 'Ошибка смены пароля');
+      toast.error(err.response?.data?.error || 'Ошибка смены пароля');
     } finally {
       setSaving(false);
     }
@@ -112,9 +106,6 @@ function Profile() {
         <h1>Мой профиль</h1>
         <p>Управление личной информацией и настройками аккаунта</p>
       </div>
-
-      {error && <div className={styles.error}>{error}</div>}
-      {success && <div className={styles.success}>{success}</div>}
 
       {/* Основная информация */}
       <div className={styles.section}>
@@ -246,7 +237,6 @@ function Profile() {
                 onClick={() => {
                   setShowPasswordForm(false);
                   setPasswords({ currentPassword: '', newPassword: '', confirmPassword: '' });
-                  setError('');
                 }}
                 className={styles.btnCancel}
               >

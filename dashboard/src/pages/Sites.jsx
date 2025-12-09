@@ -2,10 +2,13 @@ import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Plus, Globe, Code, Trash2, RefreshCw, CheckCircle, AlertCircle, Copy } from 'lucide-react';
 import { sitesAPI } from '../utils/api';
+import { useToast } from '../components/Toast/ToastContainer';
+import EmptyState from '../components/EmptyState/EmptyState';
 import styles from './Sites.module.css';
 
 function Sites() {
   const navigate = useNavigate();
+  const toast = useToast();
   const [sites, setSites] = useState([]);
   const [loading, setLoading] = useState(true);
   const [showAddModal, setShowAddModal] = useState(false);
@@ -26,6 +29,8 @@ function Sites() {
       console.error('Load sites error:', err);
       if (err.response?.status === 401) {
         navigate('/login');
+      } else {
+        toast.error('Ошибка загрузки сайтов');
       }
     } finally {
       setLoading(false);
@@ -41,9 +46,11 @@ function Sites() {
       setNewSite({ name: '', domain: '' });
       setShowAddModal(false);
       await loadSites();
+      toast.success('Сайт успешно добавлен!');
     } catch (err) {
       console.error('Add site error:', err);
       setError(err.response?.data?.error || 'Ошибка добавления сайта');
+      toast.error('Не удалось добавить сайт');
     }
   };
 
@@ -53,9 +60,10 @@ function Sites() {
     try {
       await sitesAPI.delete(siteId);
       await loadSites();
+      toast.success(`Сайт "${siteName}" удалён`);
     } catch (err) {
       console.error('Delete site error:', err);
-      alert('Ошибка удаления сайта');
+      toast.error('Ошибка удаления сайта');
     }
   };
 
@@ -65,16 +73,16 @@ function Sites() {
     try {
       await sitesAPI.regenerateKey(siteId);
       await loadSites();
-      alert('Новый API ключ сгенерирован. Обновите трекер на сайте.');
+      toast.warning('Новый API ключ сгенерирован. Обновите трекер на сайте.');
     } catch (err) {
       console.error('Regenerate key error:', err);
-      alert('Ошибка перегенерации ключа');
+      toast.error('Ошибка перегенерации ключа');
     }
   };
 
   const copyToClipboard = (text) => {
     navigator.clipboard.writeText(text);
-    alert('Скопировано!');
+    toast.success('Скопировано в буфер обмена!');
   };
 
   const getTrackerCode = (apiKey) => {
@@ -108,15 +116,17 @@ function Sites() {
       </div>
 
       {sites.length === 0 ? (
-        <div className={styles.empty}>
-          <Globe size={64} />
-          <h2>У вас ещё нет сайтов</h2>
-          <p>Добавьте первый сайт, чтобы начать защиту от скликивания</p>
-          <button onClick={() => setShowAddModal(true)} className={styles.btnPrimary}>
-            <Plus size={18} />
-            Добавить первый сайт
-          </button>
-        </div>
+        <EmptyState
+          icon={Globe}
+          title="У вас пока нет сайтов"
+          description="Добавьте первый сайт, чтобы начать защиту от скликивания рекламы. Это займёт всего минуту!"
+          action={
+            <button onClick={() => setShowAddModal(true)} className={styles.btnPrimary}>
+              <Plus size={18} />
+              Добавить первый сайт
+            </button>
+          }
+        />
       ) : (
         <div className={styles.grid}>
           {sites.map((site) => (
