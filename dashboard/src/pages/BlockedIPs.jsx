@@ -9,6 +9,8 @@ function BlockedIPs() {
   const [showAddModal, setShowAddModal] = useState(false);
   const [newIP, setNewIP] = useState('');
   const [newReason, setNewReason] = useState('');
+  const [filterType, setFilterType] = useState('all');
+  const [searchQuery, setSearchQuery] = useState('');
 
   useEffect(() => {
     loadBlocked();
@@ -27,14 +29,14 @@ function BlockedIPs() {
   };
 
   const handleUnblock = async (ip) => {
-    if (!confirm(`Разблокировать IP ${ip}?`)) return;
+    if (!confirm(`Are you sure you want to unblock ${ip}?`)) return;
 
     try {
       await blockedAPI.unblockIP(siteId, ip);
       await loadBlocked();
     } catch (err) {
       console.error('Failed to unblock IP:', err);
-      alert('Ошибка разблокировки');
+      alert('Failed to unblock IP. Please try again.');
     }
   };
 
@@ -44,8 +46,8 @@ function BlockedIPs() {
     try {
       await blockedAPI.blockIP(siteId, {
         ip: newIP,
-        reason: newReason || 'Ручная блокировка',
-        autoDuration: 168 // 7 days
+        reason: newReason || 'Manual block',
+        autoDuration: 168
       });
       
       setNewIP('');
@@ -54,7 +56,7 @@ function BlockedIPs() {
       await loadBlocked();
     } catch (err) {
       console.error('Failed to block IP:', err);
-      alert('Ошибка блокировки');
+      alert('Failed to block IP. Please try again.');
     }
   };
 
@@ -63,67 +65,143 @@ function BlockedIPs() {
       const data = await blockedAPI.exportForYandex(siteId);
       const text = data.ips.join('\n');
       
-      // Copy to clipboard
       await navigator.clipboard.writeText(text);
-      alert(`Скопировано ${data.ips.length} IP адресов в буфер обмена`);
+      alert(`${data.ips.length} IP addresses copied to clipboard`);
     } catch (err) {
       console.error('Failed to export:', err);
-      alert('Ошибка экспорта');
+      alert('Failed to export IPs');
     }
   };
+
+  const filteredBlocked = blocked.filter(item => {
+    if (filterType === 'auto' && !item.auto_blocked) return false;
+    if (filterType === 'manual' && item.auto_blocked) return false;
+    if (searchQuery && !item.ip_address.includes(searchQuery)) return false;
+    return true;
+  });
+
+  const ShieldIcon = () => (
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+      <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path>
+    </svg>
+  );
+
+  const DownloadIcon = () => (
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+      <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+      <polyline points="7 10 12 15 17 10"></polyline>
+      <line x1="12" y1="15" x2="12" y2="3"></line>
+    </svg>
+  );
+
+  const PlusIcon = () => (
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+      <line x1="12" y1="5" x2="12" y2="19"></line>
+      <line x1="5" y1="12" x2="19" y2="12"></line>
+    </svg>
+  );
 
   return (
     <div className={styles.blocked}>
       <div className={styles.header}>
-        <div>
-          <h2>Заблокированные IP</h2>
-          <p className={styles.subtitle}>Всего: {blocked.length}</p>
+        <div className={styles.headerLeft}>
+          <div className={styles.stats}>
+            <div className={styles.statItem}>
+              <span className={styles.statValue}>{blocked.length}</span>
+              <span className={styles.statLabel}>Total Blocked</span>
+            </div>
+            <div className={styles.statItem}>
+              <span className={styles.statValue}>{blocked.filter(b => b.auto_blocked).length}</span>
+              <span className={styles.statLabel}>Auto-blocked</span>
+            </div>
+            <div className={styles.statItem}>
+              <span className={styles.statValue}>{blocked.filter(b => !b.auto_blocked).length}</span>
+              <span className={styles.statLabel}>Manual</span>
+            </div>
+          </div>
         </div>
-        <div className={styles.actions}>
+        <div className={styles.headerActions}>
           <button onClick={handleExport} className={styles.btnSecondary}>
-            📎 Экспорт для Yandex
+            <DownloadIcon />
+            Export for Yandex
           </button>
           <button onClick={() => setShowAddModal(true)} className={styles.btnPrimary}>
-            + Добавить IP
+            <PlusIcon />
+            Add IP
           </button>
         </div>
       </div>
 
+      <div className={styles.controls}>
+        <div className={styles.filters}>
+          <button 
+            className={`${styles.filterBtn} ${filterType === 'all' ? styles.active : ''}`}
+            onClick={() => setFilterType('all')}
+          >
+            All
+          </button>
+          <button 
+            className={`${styles.filterBtn} ${filterType === 'auto' ? styles.active : ''}`}
+            onClick={() => setFilterType('auto')}
+          >
+            Auto-blocked
+          </button>
+          <button 
+            className={`${styles.filterBtn} ${filterType === 'manual' ? styles.active : ''}`}
+            onClick={() => setFilterType('manual')}
+          >
+            Manual
+          </button>
+        </div>
+        <input
+          type="text"
+          placeholder="Search IP address..."
+          className={styles.search}
+          value={searchQuery}
+          onChange={(e) => setSearchQuery(e.target.value)}
+        />
+      </div>
+
       {loading ? (
-        <div className={styles.loading}>Загрузка...</div>
-      ) : blocked.length === 0 ? (
+        <div className={styles.loading}>Loading blocked IPs...</div>
+      ) : filteredBlocked.length === 0 ? (
         <div className={styles.empty}>
-          <p>Нет заблокированных IP</p>
+          <ShieldIcon />
+          <p>No blocked IP addresses{searchQuery ? ' matching your search' : ''}</p>
         </div>
       ) : (
         <div className={styles.table}>
           <table>
             <thead>
               <tr>
-                <th>IP адрес</th>
-                <th>Причина</th>
-                <th>Тип</th>
-                <th>Дата блокировки</th>
-                <th>Действия</th>
+                <th>IP Address</th>
+                <th>Reason</th>
+                <th>Type</th>
+                <th>Blocked At</th>
+                <th>Auto-unblock</th>
+                <th>Actions</th>
               </tr>
             </thead>
             <tbody>
-              {blocked.map((item) => (
+              {filteredBlocked.map((item) => (
                 <tr key={item.id}>
-                  <td><code>{item.ip_address}</code></td>
-                  <td>{item.reason}</td>
+                  <td><code className={styles.ipCode}>{item.ip_address}</code></td>
+                  <td className={styles.reason}>{item.reason}</td>
                   <td>
                     <span className={`${styles.badge} ${item.auto_blocked ? styles.badgeAuto : styles.badgeManual}`}>
-                      {item.auto_blocked ? 'Авто' : 'Ручной'}
+                      {item.auto_blocked ? 'Automatic' : 'Manual'}
                     </span>
                   </td>
-                  <td>{new Date(item.blocked_at).toLocaleString('ru')}</td>
+                  <td className={styles.date}>{new Date(item.blocked_at).toLocaleString('en-US')}</td>
+                  <td className={styles.date}>
+                    {item.auto_unblock_at ? new Date(item.auto_unblock_at).toLocaleString('en-US') : '—'}
+                  </td>
                   <td>
                     <button 
                       onClick={() => handleUnblock(item.ip_address)}
-                      className={styles.btnDanger}
+                      className={styles.btnUnblock}
                     >
-                      Разблокировать
+                      Unblock
                     </button>
                   </td>
                 </tr>
@@ -133,37 +211,41 @@ function BlockedIPs() {
         </div>
       )}
 
-      {/* Add IP Modal */}
       {showAddModal && (
         <div className={styles.modal} onClick={() => setShowAddModal(false)}>
           <div className={styles.modalContent} onClick={(e) => e.stopPropagation()}>
-            <h3>Добавить IP в блокировку</h3>
+            <div className={styles.modalHeader}>
+              <h3>Block IP Address</h3>
+              <button onClick={() => setShowAddModal(false)} className={styles.modalClose}>×</button>
+            </div>
             <form onSubmit={handleAddIP}>
               <div className={styles.formGroup}>
-                <label>IP адрес</label>
+                <label>IP Address</label>
                 <input
                   type="text"
                   placeholder="192.168.1.1"
                   value={newIP}
                   onChange={(e) => setNewIP(e.target.value)}
                   required
+                  pattern="^(?:[0-9]{1,3}\.){3}[0-9]{1,3}$"
                 />
+                <small>Enter a valid IPv4 address</small>
               </div>
               <div className={styles.formGroup}>
-                <label>Причина (опционально)</label>
+                <label>Reason (optional)</label>
                 <textarea
-                  placeholder="Причина блокировки"
+                  placeholder="Reason for blocking this IP address"
                   value={newReason}
                   onChange={(e) => setNewReason(e.target.value)}
                   rows={3}
                 />
               </div>
               <div className={styles.modalActions}>
-                <button type="button" onClick={() => setShowAddModal(false)} className={styles.btnSecondary}>
-                  Отмена
+                <button type="button" onClick={() => setShowAddModal(false)} className={styles.btnCancel}>
+                  Cancel
                 </button>
-                <button type="submit" className={styles.btnPrimary}>
-                  Добавить
+                <button type="submit" className={styles.btnSubmit}>
+                  Block IP
                 </button>
               </div>
             </form>
