@@ -132,7 +132,7 @@
   padding: 0 var(--spacing-xl);
   position: sticky;
   top: 0;
-  z-index: 50;
+  z-index: 90; /* Увеличили с 50 до 90 */
 }
 
 .headerLeft,
@@ -144,6 +144,7 @@
 
 .siteSelector {
   position: relative;
+  z-index: 100; /* Добавили z-index для селектора */
 }
 
 .siteSelectorBtn,
@@ -179,14 +180,17 @@
 .dropdown {
   position: absolute;
   top: calc(100% + 8px);
-  right: 0;
+  left: 0; /* Изменили с right на left */
   min-width: 280px;
+  max-width: 400px;
   background: var(--bg-primary);
   border: 1px solid var(--border-color);
   border-radius: var(--border-radius);
-  box-shadow: var(--shadow-lg);
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3); /* Усилили тень */
   padding: 4px;
   z-index: 1000;
+  max-height: 400px;
+  overflow-y: auto;
 }
 
 .dropdownItem {
@@ -215,6 +219,10 @@
   color: white;
 }
 
+.dropdownItem.active .siteDomain {
+  color: rgba(255, 255, 255, 0.8); /* Светлее для активного */
+}
+
 .siteName {
   font-weight: 600;
   font-size: var(--font-size-sm);
@@ -236,6 +244,7 @@
 
 .userMenu {
   position: relative;
+  z-index: 100; /* Добавили z-index для меню пользователя */
 }
 
 @media (max-width: 768px) {
@@ -261,5 +270,10 @@
   
   .content {
     padding: var(--spacing-md);
+  }
+  
+  .dropdown {
+    left: auto;
+    right: 0;
   }
 }
