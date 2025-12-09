@@ -1,0 +1,107 @@
+.themeToggle {
+  position: relative;
+  width: 60px;
+  height: 32px;
+  border-radius: 16px;
+  background: var(--bg-secondary);
+  border: 2px solid var(--border-color);
+  cursor: pointer;
+  transition: all var(--transition-base);
+  padding: 0;
+  overflow: hidden;
+}
+
+.themeToggle:hover {
+  border-color: var(--color-primary);
+  transform: scale(1.05);
+}
+
+.iconWrapper {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 6px;
+}
+
+.sunIcon,
+.moonIcon {
+  transition: all var(--transition-base);
+  position: absolute;
+}
+
+/* Light theme state */
+.iconWrapper.light .sunIcon {
+  left: 6px;
+  color: #f59e0b;
+  opacity: 1;
+  transform: rotate(0deg) scale(1);
+}
+
+.iconWrapper.light .moonIcon {
+  right: 6px;
+  color: var(--text-secondary);
+  opacity: 0.3;
+  transform: rotate(-30deg) scale(0.8);
+}
+
+/* Dark theme state */
+.iconWrapper.dark .sunIcon {
+  left: 6px;
+  color: var(--text-secondary);
+  opacity: 0.3;
+  transform: rotate(30deg) scale(0.8);
+}
+
+.iconWrapper.dark .moonIcon {
+  right: 6px;
+  color: #60a5fa;
+  opacity: 1;
+  transform: rotate(0deg) scale(1);
+}
+
+/* Active indicator */
+.iconWrapper::before {
+  content: '';
+  position: absolute;
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  background: var(--color-primary);
+  transition: all var(--transition-base);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+.iconWrapper.light::before {
+  left: 3px;
+  transform: translateX(0);
+}
+
+.iconWrapper.dark::before {
+  left: 3px;
+  transform: translateX(28px);
+}
+
+@media (max-width: 768px) {
+  .themeToggle {
+    width: 50px;
+    height: 28px;
+  }
+  
+  .sunIcon,
+  .moonIcon {
+    width: 16px;
+    height: 16px;
+  }
+  
+  .iconWrapper::before {
+    width: 18px;
+    height: 18px;
+  }
+  
+  .iconWrapper.dark::before {
+    transform: translateX(22px);
+  }
+}

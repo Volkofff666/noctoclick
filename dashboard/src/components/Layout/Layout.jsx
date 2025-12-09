@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { Link, useLocation, Outlet, useNavigate } from 'react-router-dom';
 import { BarChart3, Shield, Settings, Link as LinkIcon, ChevronLeft, ChevronRight, Globe, User, LogOut } from 'lucide-react';
 import { authAPI, sitesAPI } from '../../utils/api';
+import ThemeToggle from '../ThemeToggle/ThemeToggle';
 import styles from './Layout.module.css';
 
 function Layout() {
@@ -145,6 +146,7 @@ function Layout() {
             )}
           </div>
           <div className={styles.headerRight}>
+            <ThemeToggle />
             <div className={styles.userMenu}>
               <button 
                 onClick={() => setShowUserMenu(!showUserMenu)}
