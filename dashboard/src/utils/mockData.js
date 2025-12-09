@@ -7,41 +7,51 @@ export const mockSites = {
       id: 1,
       name: 'Интернет-магазин "МегаШоп"',
       domain: 'megashop.ru',
-      apiKey: 'nck_live_1a2b3c4d5e6f7g8h9i0j',
+      api_key: 'nck_live_1a2b3c4d5e6f7g8h9i0j',
       isActive: true,
-      createdAt: '2024-10-15T10:30:00Z'
+      tracker_installed: true,
+      createdAt: '2024-10-15T10:30:00Z',
+      last_event_at: '2024-12-09T18:45:00Z'
     },
     {
       id: 2,
       name: 'Лендинг юридических услуг',
       domain: 'lawfirm-pro.ru',
-      apiKey: 'nck_live_2k3l4m5n6o7p8q9r0s1t',
+      api_key: 'nck_live_2k3l4m5n6o7p8q9r0s1t',
       isActive: true,
-      createdAt: '2024-11-01T14:20:00Z'
+      tracker_installed: true,
+      createdAt: '2024-11-01T14:20:00Z',
+      last_event_at: '2024-12-09T18:30:00Z'
     },
     {
       id: 3,
       name: 'Автосалон "Драйв"',
       domain: 'drive-auto.ru',
-      apiKey: 'nck_live_3u4v5w6x7y8z9a0b1c2d',
+      api_key: 'nck_live_3u4v5w6x7y8z9a0b1c2d',
       isActive: true,
-      createdAt: '2024-11-10T09:15:00Z'
+      tracker_installed: true,
+      createdAt: '2024-11-10T09:15:00Z',
+      last_event_at: '2024-12-09T17:50:00Z'
     },
     {
       id: 4,
       name: 'Стоматологическая клиника',
       domain: 'smile-clinic.ru',
-      apiKey: 'nck_live_4e5f6g7h8i9j0k1l2m3n',
+      api_key: 'nck_live_4e5f6g7h8i9j0k1l2m3n',
       isActive: false,
-      createdAt: '2024-11-20T11:45:00Z'
+      tracker_installed: false,
+      createdAt: '2024-11-20T11:45:00Z',
+      last_event_at: null
     },
     {
       id: 5,
       name: 'Агентство недвижимости',
       domain: 'realty-expert.ru',
-      apiKey: 'nck_live_5o6p7q8r9s0t1u2v3w4x',
+      api_key: 'nck_live_5o6p7q8r9s0t1u2v3w4x',
       isActive: true,
-      createdAt: '2024-11-25T16:30:00Z'
+      tracker_installed: true,
+      createdAt: '2024-11-25T16:30:00Z',
+      last_event_at: '2024-12-09T18:20:00Z'
     }
   ]
 };

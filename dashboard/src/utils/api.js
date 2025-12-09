@@ -133,10 +133,13 @@ export const sitesAPI = {
       const newSite = {
         id: mockData.mockSites.sites.length + 1,
         ...data,
-        apiKey: 'nck_live_' + Math.random().toString(36).substr(2, 20),
+        api_key: 'nck_live_' + Math.random().toString(36).substr(2, 20),
         isActive: true,
-        createdAt: new Date().toISOString()
+        tracker_installed: false,
+        createdAt: new Date().toISOString(),
+        last_event_at: null
       };
+      mockData.mockSites.sites.push(newSite);
       return { data: { site: newSite } };
     }
     return api.post('/sites', data);
@@ -151,9 +154,24 @@ export const sitesAPI = {
   delete: async (id) => {
     if (USE_MOCK_DATA) {
       await mockDelay();
+      const index = mockData.mockSites.sites.findIndex(s => s.id === parseInt(id));
+      if (index > -1) {
+        mockData.mockSites.sites.splice(index, 1);
+      }
       return { data: { message: 'Сайт удалён' } };
     }
     return api.delete(`/sites/${id}`);
+  },
+  regenerateKey: async (id) => {
+    if (USE_MOCK_DATA) {
+      await mockDelay();
+      const site = mockData.mockSites.sites.find(s => s.id === parseInt(id));
+      if (site) {
+        site.api_key = 'nck_live_' + Math.random().toString(36).substr(2, 20);
+      }
+      return { data: { message: 'API ключ перегенерирован' } };
+    }
+    return api.post(`/sites/${id}/regenerate-key`);
   }
 };
 
