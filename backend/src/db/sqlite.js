@@ -1,9 +1,10 @@
 /**
- * SQLite Database Connection
+ * SQLite Database Connection (better-sqlite3)
  * Простая альтернатива PostgreSQL для локального тестирования
+ * Использует better-sqlite3 - работает на Windows без Visual Studio!
  */
 
-const sqlite3 = require('sqlite3').verbose();
+const Database = require('better-sqlite3');
 const path = require('path');
 const fs = require('fs');
 const logger = require('../utils/logger');
@@ -18,115 +19,91 @@ if (!fs.existsSync(DB_DIR)) {
 }
 
 // Создаем подключение к SQLite
-const db = new sqlite3.Database(DB_PATH, (err) => {
-  if (err) {
-    logger.error('SQLite connection error:', err);
-    throw err;
-  }
-  logger.info(`SQLite connected: ${DB_PATH}`);
-});
+const db = new Database(DB_PATH, { verbose: console.log });
 
 // Включаем foreign keys
-db.run('PRAGMA foreign_keys = ON');
+db.pragma('foreign_keys = ON');
+
+logger.info(`SQLite connected: ${DB_PATH}`);
 
 /**
  * Выполнить SQL запрос (для SELECT)
  */
 function query(sql, params = []) {
-  return new Promise((resolve, reject) => {
-    db.all(sql, params, (err, rows) => {
-      if (err) {
-        logger.error('SQLite query error:', { sql, error: err.message });
-        reject(err);
-      } else {
-        resolve({ rows });
-      }
-    });
-  });
+  try {
+    const stmt = db.prepare(sql);
+    const rows = stmt.all(params);
+    return Promise.resolve({ rows });
+  } catch (err) {
+    logger.error('SQLite query error:', { sql, error: err.message });
+    return Promise.reject(err);
+  }
 }
 
 /**
  * Выполнить SQL запрос (для INSERT/UPDATE/DELETE)
  */
 function run(sql, params = []) {
-  return new Promise((resolve, reject) => {
-    db.run(sql, params, function(err) {
-      if (err) {
-        logger.error('SQLite run error:', { sql, error: err.message });
-        reject(err);
-      } else {
-        resolve({ 
-          lastID: this.lastID,
-          changes: this.changes,
-          rows: [{ id: this.lastID }] 
-        });
-      }
+  try {
+    const stmt = db.prepare(sql);
+    const result = stmt.run(params);
+    return Promise.resolve({ 
+      lastID: result.lastInsertRowid,
+      changes: result.changes,
+      rows: [{ id: result.lastInsertRowid }] 
     });
-  });
+  } catch (err) {
+    logger.error('SQLite run error:', { sql, error: err.message });
+    return Promise.reject(err);
+  }
 }
 
 /**
  * Получить одну строку
  */
 function get(sql, params = []) {
-  return new Promise((resolve, reject) => {
-    db.get(sql, params, (err, row) => {
-      if (err) {
-        logger.error('SQLite get error:', { sql, error: err.message });
-        reject(err);
-      } else {
-        resolve({ rows: row ? [row] : [] });
-      }
-    });
-  });
+  try {
+    const stmt = db.prepare(sql);
+    const row = stmt.get(params);
+    return Promise.resolve({ rows: row ? [row] : [] });
+  } catch (err) {
+    logger.error('SQLite get error:', { sql, error: err.message });
+    return Promise.reject(err);
+  }
 }
 
 /**
  * Выполнить несколько запросов в транзакции
  */
 function transaction(queries) {
-  return new Promise((resolve, reject) => {
-    db.serialize(() => {
-      db.run('BEGIN TRANSACTION');
-      
-      try {
-        const results = [];
-        for (const { sql, params } of queries) {
-          db.run(sql, params, function(err) {
-            if (err) throw err;
-            results.push({ lastID: this.lastID, changes: this.changes });
-          });
-        }
-        db.run('COMMIT', (err) => {
-          if (err) {
-            db.run('ROLLBACK');
-            reject(err);
-          } else {
-            resolve(results);
-          }
-        });
-      } catch (error) {
-        db.run('ROLLBACK');
-        reject(error);
+  try {
+    const results = db.transaction(() => {
+      const output = [];
+      for (const { sql, params } of queries) {
+        const stmt = db.prepare(sql);
+        const result = stmt.run(params);
+        output.push({ lastID: result.lastInsertRowid, changes: result.changes });
       }
-    });
-  });
+      return output;
+    })();
+    return Promise.resolve(results);
+  } catch (err) {
+    logger.error('SQLite transaction error:', err);
+    return Promise.reject(err);
+  }
 }
 
 /**
  * Закрыть соединение
  */
 function close() {
-  return new Promise((resolve, reject) => {
-    db.close((err) => {
-      if (err) {
-        reject(err);
-      } else {
-        logger.info('SQLite connection closed');
-        resolve();
-      }
-    });
-  });
+  try {
+    db.close();
+    logger.info('SQLite connection closed');
+    return Promise.resolve();
+  } catch (err) {
+    return Promise.reject(err);
+  }
 }
 
 /**
@@ -137,7 +114,7 @@ async function init() {
     logger.info('Initializing SQLite database...');
 
     // Создаем таблицу users
-    await run(`
+    db.exec(`
       CREATE TABLE IF NOT EXISTS users (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         email TEXT UNIQUE NOT NULL,
@@ -149,7 +126,7 @@ async function init() {
     `);
 
     // Создаем таблицу client_sites
-    await run(`
+    db.exec(`
       CREATE TABLE IF NOT EXISTS client_sites (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         user_id INTEGER NOT NULL,
@@ -164,7 +141,7 @@ async function init() {
     `);
 
     // Создаем таблицу events
-    await run(`
+    db.exec(`
       CREATE TABLE IF NOT EXISTS events (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         site_id INTEGER NOT NULL,
@@ -197,7 +174,7 @@ async function init() {
     `);
 
     // Создаем таблицу blocked_ips
-    await run(`
+    db.exec(`
       CREATE TABLE IF NOT EXISTS blocked_ips (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         site_id INTEGER NOT NULL,
@@ -214,13 +191,13 @@ async function init() {
     `);
 
     // Создаем индексы для производительности
-    await run('CREATE INDEX IF NOT EXISTS idx_events_site_id ON events(site_id)');
-    await run('CREATE INDEX IF NOT EXISTS idx_events_ip ON events(ip_address)');
-    await run('CREATE INDEX IF NOT EXISTS idx_events_fingerprint ON events(fingerprint_hash)');
-    await run('CREATE INDEX IF NOT EXISTS idx_events_created ON events(created_at)');
-    await run('CREATE INDEX IF NOT EXISTS idx_events_fraud ON events(is_fraud, is_suspicious)');
-    await run('CREATE INDEX IF NOT EXISTS idx_blocked_site_ip ON blocked_ips(site_id, ip_address)');
-    await run('CREATE INDEX IF NOT EXISTS idx_blocked_active ON blocked_ips(is_active)');
+    db.exec('CREATE INDEX IF NOT EXISTS idx_events_site_id ON events(site_id)');
+    db.exec('CREATE INDEX IF NOT EXISTS idx_events_ip ON events(ip_address)');
+    db.exec('CREATE INDEX IF NOT EXISTS idx_events_fingerprint ON events(fingerprint_hash)');
+    db.exec('CREATE INDEX IF NOT EXISTS idx_events_created ON events(created_at)');
+    db.exec('CREATE INDEX IF NOT EXISTS idx_events_fraud ON events(is_fraud, is_suspicious)');
+    db.exec('CREATE INDEX IF NOT EXISTS idx_blocked_site_ip ON blocked_ips(site_id, ip_address)');
+    db.exec('CREATE INDEX IF NOT EXISTS idx_blocked_active ON blocked_ips(is_active)');
 
     logger.info('SQLite database initialized successfully');
     return true;
