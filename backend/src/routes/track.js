@@ -5,7 +5,7 @@
 
 const express = require('express');
 const router = express.Router();
-const { query } = require('../db/postgres');
+const { query, run } = require('../db');
 const logger = require('../utils/logger');
 const FraudDetector = require('../services/fraud-detector');
 
@@ -13,23 +13,20 @@ const FraudDetector = require('../services/fraud-detector');
  * Get real IP address from request
  */
 function getClientIP(req) {
-  // Check X-Forwarded-For header (for proxies/load balancers)
   const forwarded = req.headers['x-forwarded-for'];
   if (forwarded) {
     return forwarded.split(',')[0].trim();
   }
   
-  // Check X-Real-IP header
   if (req.headers['x-real-ip']) {
     return req.headers['x-real-ip'];
   }
   
-  // Fallback to direct connection IP
   return req.ip || req.connection.remoteAddress || 'unknown';
 }
 
 /**
- * Increment click counter in memory (simple implementation)
+ * Increment click counter in memory
  */
 const clickCounters = new Map();
 
@@ -38,20 +35,12 @@ function incrementClickCounter(siteId, ip) {
   const now = Date.now();
   const hourAgo = now - (60 * 60 * 1000);
   
-  // Get or create counter for this IP
   let counter = clickCounters.get(key) || [];
-  
-  // Remove clicks older than 1 hour
   counter = counter.filter(timestamp => timestamp > hourAgo);
-  
-  // Add current click
   counter.push(now);
-  
-  // Update counter
   clickCounters.set(key, counter);
   
-  // Clean up old entries periodically
-  if (Math.random() < 0.01) { // 1% chance
+  if (Math.random() < 0.01) {
     cleanupOldCounters();
   }
   
@@ -85,10 +74,8 @@ router.post('/', async (req, res) => {
       utm
     } = req.body;
 
-    // Get real client IP
     const ip = getClientIP(req);
 
-    // Validate required fields
     if (!siteId || !fingerprintHash) {
       return res.status(400).json({ 
         error: 'Missing required fields',
@@ -96,10 +83,10 @@ router.post('/', async (req, res) => {
       });
     }
 
-    // Get site from database (support both API key and site ID)
+    // Get site from database
     const siteResult = await query(
-      'SELECT id, user_id, domain FROM client_sites WHERE api_key = $1 OR id::text = $1',
-      [siteId]
+      'SELECT id, user_id, domain FROM client_sites WHERE api_key = ? OR id = ?',
+      [siteId, siteId]
     );
 
     if (siteResult.rows.length === 0) {
@@ -115,9 +102,9 @@ router.post('/', async (req, res) => {
     // Check if IP is blocked
     const blockedCheck = await query(
       `SELECT id, reason FROM blocked_ips 
-       WHERE site_id = $1 AND ip_address = $2 
-       AND is_active = true 
-       AND (auto_unblock_at IS NULL OR auto_unblock_at > NOW())`,
+       WHERE site_id = ? AND ip_address = ? 
+       AND is_active = 1 
+       AND (auto_unblock_at IS NULL OR auto_unblock_at > datetime('now'))`,
       [siteDbId, ip]
     );
 
@@ -152,7 +139,7 @@ router.post('/', async (req, res) => {
     });
 
     // Save event to database
-    await query(`
+    await run(`
       INSERT INTO events (
         site_id,
         ip_address,
@@ -178,7 +165,7 @@ router.post('/', async (req, res) => {
         is_suspicious,
         fraud_reason,
         fingerprint_data
-      ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, $22, $23, $24)
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     `, [
       siteDbId,
       ip,
@@ -200,13 +187,12 @@ router.post('/', async (req, res) => {
       utm?.utm_content || null,
       utm?.yclid || null,
       analysis.fraudScore,
-      analysis.isFraud,
-      analysis.isSuspicious,
+      analysis.isFraud ? 1 : 0,
+      analysis.isSuspicious ? 1 : 0,
       analysis.reason,
       JSON.stringify(fingerprint)
     ]);
 
-    // Log the event
     logger.info('Event tracked', { 
       siteId: siteDbId, 
       ip, 
@@ -216,14 +202,13 @@ router.post('/', async (req, res) => {
       clickCount
     });
 
-    // If fraud detected, trigger auto-block check (async, don't wait)
+    // If fraud detected, trigger auto-block check (async)
     if (analysis.isFraud && clickCount >= 3) {
       fraudDetector.autoBlock(siteDbId).catch(err => {
         logger.error('Auto-block failed', { error: err.message });
       });
     }
 
-    // Return response (don't expose too much info to client)
     res.status(200).json({
       success: true,
       fraudScore: analysis.fraudScore,
@@ -240,108 +225,15 @@ router.post('/', async (req, res) => {
 });
 
 /**
- * GET /api/track/test - test endpoint for tracker installation
+ * GET /api/track/test - test endpoint
  */
 router.get('/test', (req, res) => {
   res.status(200).json({
     success: true,
     message: 'NoctoClick tracker endpoint is working',
-    timestamp: new Date().toISOString()
+    timestamp: new Date().toISOString(),
+    database: process.env.DB_TYPE || 'sqlite'
   });
-});
-
-/**
- * POST /api/track/batch - batch event tracking (for performance)
- */
-router.post('/batch', async (req, res) => {
-  try {
-    const { events } = req.body;
-
-    if (!Array.isArray(events) || events.length === 0) {
-      return res.status(400).json({ 
-        error: 'Events array required',
-        success: false 
-      });
-    }
-
-    // Limit batch size
-    if (events.length > 100) {
-      return res.status(400).json({ 
-        error: 'Maximum 100 events per batch',
-        success: false 
-      });
-    }
-
-    const results = [];
-    const fraudDetector = new FraudDetector();
-
-    for (const event of events) {
-      try {
-        const ip = getClientIP(req);
-        
-        // Get site
-        const siteResult = await query(
-          'SELECT id FROM client_sites WHERE api_key = $1 OR id::text = $1',
-          [event.siteId]
-        );
-
-        if (siteResult.rows.length === 0) continue;
-
-        const siteDbId = siteResult.rows[0].id;
-        const clickCount = incrementClickCounter(siteDbId, ip);
-
-        // Analyze fraud
-        const analysis = await fraudDetector.analyze({
-          siteId: siteDbId,
-          ip,
-          fingerprint: event.fingerprint,
-          fingerprintHash: event.fingerprintHash,
-          behavior: event.behavior,
-          clickCount
-        });
-
-        // Save event
-        await query(`
-          INSERT INTO events (
-            site_id, ip_address, fingerprint_hash, user_agent,
-            url, referrer, mouse_movements, clicks, key_presses,
-            scrolls, time_on_page, fraud_score, is_fraud, is_suspicious,
-            fraud_reason, fingerprint_data
-          ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16)
-        `, [
-          siteDbId, ip, event.fingerprintHash,
-          event.fingerprint?.userAgent || req.headers['user-agent'],
-          event.url, event.referrer,
-          event.behavior?.mouseMovements || 0,
-          event.behavior?.clicks || 0,
-          event.behavior?.keyPresses || 0,
-          event.behavior?.scrolls || 0,
-          event.behavior?.timeOnPage || 0,
-          analysis.fraudScore, analysis.isFraud, analysis.isSuspicious,
-          analysis.reason, JSON.stringify(event.fingerprint)
-        ]);
-
-        results.push({ success: true, fraudScore: analysis.fraudScore });
-
-      } catch (err) {
-        logger.error('Batch event error:', err);
-        results.push({ success: false, error: err.message });
-      }
-    }
-
-    res.status(200).json({
-      success: true,
-      processed: results.length,
-      results
-    });
-
-  } catch (error) {
-    logger.error('Batch track error:', error);
-    res.status(500).json({ 
-      error: 'Internal server error',
-      success: false 
-    });
-  }
 });
 
 module.exports = router;
