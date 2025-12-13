@@ -5,7 +5,7 @@
 
 const config = require('../config');
 const logger = require('../utils/logger');
-const { query } = require('../db/postgres');
+const { query } = require('../db');
 
 class FraudDetector {
   constructor() {
@@ -173,8 +173,8 @@ class FraudDetector {
     try {
       const result = await query(
         `SELECT COUNT(*) as count FROM events 
-         WHERE site_id = $1 AND fingerprint_hash = $2 
-         AND created_at >= NOW() - INTERVAL '7 days'`,
+         WHERE site_id = ? AND fingerprint_hash = ? 
+         AND created_at >= datetime('now', '-7 days')`,
         [siteId, fingerprintHash]
       );
       return parseInt(result.rows[0]?.count) || 0;
@@ -196,9 +196,9 @@ class FraudDetector {
       const fraudHistory = await query(
         `SELECT COUNT(*) as fraud_count 
          FROM events 
-         WHERE site_id = $1 AND ip_address = $2 
-         AND is_fraud = true 
-         AND created_at >= NOW() - INTERVAL '30 days'`,
+         WHERE site_id = ? AND ip_address = ? 
+         AND is_fraud = 1 
+         AND created_at >= datetime('now', '-30 days')`,
         [siteId, ip]
       );
 
@@ -211,9 +211,9 @@ class FraudDetector {
       // Check if IP is currently blocked
       const blockedCheck = await query(
         `SELECT reason FROM blocked_ips 
-         WHERE site_id = $1 AND ip_address = $2 
-         AND is_active = true 
-         AND (auto_unblock_at IS NULL OR auto_unblock_at > NOW())`,
+         WHERE site_id = ? AND ip_address = ? 
+         AND is_active = 1 
+         AND (auto_unblock_at IS NULL OR auto_unblock_at > datetime('now'))`,
         [siteId, ip]
       );
 
@@ -352,13 +352,13 @@ class FraudDetector {
         SELECT 
           ip_address,
           COUNT(*) as fraud_count,
-          ROUND(AVG(fraud_score)::numeric, 2) as avg_score,
+          ROUND(AVG(fraud_score), 2) as avg_score,
           MAX(fraud_reason) as reason,
           MAX(created_at) as last_fraud_at
         FROM events
-        WHERE site_id = $1 
-          AND created_at >= NOW() - INTERVAL '24 hours'
-          AND (is_fraud = true OR fraud_score >= 60)
+        WHERE site_id = ? 
+          AND created_at >= datetime('now', '-24 hours')
+          AND (is_fraud = 1 OR fraud_score >= 60)
         GROUP BY ip_address
         HAVING COUNT(*) >= 3
         ORDER BY fraud_count DESC, avg_score DESC
@@ -389,19 +389,19 @@ class FraudDetector {
         // Check if already blocked
         const existing = await query(
           `SELECT id FROM blocked_ips 
-           WHERE site_id = $1 AND ip_address = $2 
-           AND is_active = true`,
+           WHERE site_id = ? AND ip_address = ? 
+           AND is_active = 1`,
           [siteId, ipData.ip_address]
         );
 
         if (existing.rows.length === 0) {
           // Auto-block for 7 days
-          const autoUnblockAt = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000);
+          const autoUnblockAt = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString();
           
           await query(
             `INSERT INTO blocked_ips (
               site_id, ip_address, reason, auto_blocked, auto_unblock_at, created_at
-            ) VALUES ($1, $2, $3, true, $4, NOW())`,
+            ) VALUES (?, ?, ?, 1, ?, datetime('now'))`,
             [siteId, ipData.ip_address, ipData.reason || 'Автоматическая блокировка', autoUnblockAt]
           );
           
@@ -419,11 +419,11 @@ class FraudDetector {
       // Auto-unblock expired IPs
       await query(
         `UPDATE blocked_ips 
-         SET is_active = false, unblocked_at = NOW() 
-         WHERE site_id = $1 
-         AND is_active = true 
-         AND auto_blocked = true 
-         AND auto_unblock_at <= NOW()`,
+         SET is_active = 0, unblocked_at = datetime('now') 
+         WHERE site_id = ? 
+         AND is_active = 1 
+         AND auto_blocked = 1 
+         AND auto_unblock_at <= datetime('now')`,
         [siteId]
       );
 
@@ -452,15 +452,15 @@ class FraudDetector {
       const stats = await query(`
         SELECT 
           COUNT(*) as total_events,
-          COUNT(*) FILTER (WHERE is_fraud = true) as fraud_events,
-          COUNT(*) FILTER (WHERE is_suspicious = true) as suspicious_events,
+          SUM(CASE WHEN is_fraud = 1 THEN 1 ELSE 0 END) as fraud_events,
+          SUM(CASE WHEN is_suspicious = 1 THEN 1 ELSE 0 END) as suspicious_events,
           COUNT(DISTINCT ip_address) as unique_ips,
           COUNT(DISTINCT fingerprint_hash) as unique_fingerprints,
-          ROUND(AVG(fraud_score)::numeric, 2) as avg_fraud_score,
-          ROUND((COUNT(*) FILTER (WHERE is_fraud = true)::numeric / NULLIF(COUNT(*), 0) * 100), 2) as fraud_rate
+          ROUND(AVG(fraud_score), 2) as avg_fraud_score,
+          ROUND(CAST(SUM(CASE WHEN is_fraud = 1 THEN 1 ELSE 0 END) AS REAL) / NULLIF(COUNT(*), 0) * 100, 2) as fraud_rate
         FROM events
-        WHERE site_id = $1
-        AND created_at >= NOW() - INTERVAL '${hours} hours'
+        WHERE site_id = ?
+        AND created_at >= datetime('now', '-${hours} hours')
       `, [siteId]);
 
       return stats.rows[0] || {
