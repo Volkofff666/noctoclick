@@ -20,7 +20,7 @@ async function initDatabase() {
     // Создаем тестового пользователя
     console.log('\n👤 Создание тестового пользователя...');
     
-    const bcrypt = require('bcrypt');
+    const bcrypt = require('bcryptjs');
     const crypto = require('crypto');
     
     const testEmail = 'test@noctoclick.dev';
